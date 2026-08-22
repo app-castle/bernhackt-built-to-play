@@ -60,13 +60,14 @@ function Pet() {
   useBattleEvents({
     onBattleChallenged: (data) => {
       console.log("Battle challenged event received:", data);
-      toast.add({
+      const id = toast.add({
         title: `${data.challengerName} is raiding you!`,
         timeout: data.expiresAt.getTime() - Date.now(),
         actionProps: {
           children: "Defend",
           onClick: () => {
             defend({ battleId: data.battleId });
+            toast.close(id);
           },
         },
       });
