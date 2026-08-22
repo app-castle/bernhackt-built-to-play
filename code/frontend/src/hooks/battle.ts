@@ -8,11 +8,11 @@ interface Player {
 
 export const usePlayers = () => {
   const playersQuery = useQuery<Player[]>({
-    queryKey: ["battle", "players"],
+    queryKey: ["pets"],
     queryFn: async () => {
       const accessToken = localStorage.getItem("accessToken");
 
-      const response = await fetch(`${API_URL}/battles/players`, {
+      const response = await fetch(`${API_URL}/pets`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

@@ -15,31 +15,35 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <KeystrokeTrainingListener />
       <BrowserRouter>
-        <nav>
-          <ul className="flex gap-4 p-4 bg-gray-100">
-            <li>
-              <NavLink
-                to="/"
-                className={cn(buttonVariants({ variant: "outline" }))}
-              >
-                Onboarding
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/pet"
-                className={cn(buttonVariants({ variant: "outline" }))}
-              >
-                Pet
-              </NavLink>
-            </li>
-          </ul>
-        </nav>
-        <Routes>
-          <Route path="/" element={<OnboardingPage />} />
-          <Route path="/pet" element={<PetPage />} />
-        </Routes>
-        <Toaster />
+        <main className="grid grid-rows-[auto_1fr] w-[400px] h-[400px]">
+          <nav>
+            <ul className="flex gap-4 p-4 bg-gray-100">
+              <li>
+                <NavLink
+                  to="/"
+                  className={cn(buttonVariants({ variant: "outline" }))}
+                >
+                  Onboarding
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/pet"
+                  className={cn(buttonVariants({ variant: "outline" }))}
+                >
+                  Pet
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+          <div className="flex items-center justify-center">
+            <Routes>
+              <Route path="/" element={<OnboardingPage />} />
+              <Route path="/pet" element={<PetPage />} />
+            </Routes>
+          </div>
+          <Toaster />
+        </main>
       </BrowserRouter>
     </QueryClientProvider>
   );

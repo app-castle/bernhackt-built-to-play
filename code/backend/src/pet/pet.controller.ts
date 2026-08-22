@@ -8,10 +8,8 @@ import {
 } from '@nestjs/common';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { ReturnCreatedPetDto } from './dto/return-created-pet.dto';
-import { ReturnPetDto } from './dto/return-pet.dto';
-import { ReturnPetStatusDto } from './dto/return-pet-status.dto';
-import { ReturnPetSummaryDto } from './dto/return-pet-summary.dto';
 import { ReturnPetTrainingDto } from './dto/return-pet-training.dto';
+import { ReturnPetDto } from './dto/return-pet.dto';
 import { TrainPetDto } from './dto/train-pet.dto';
 import { PetService } from './pet.service';
 
@@ -41,18 +39,10 @@ export class PetController {
     return this.petService.getCurrent(accessToken);
   }
 
-  @Get('me/status')
-  getStatus(
-    @Headers('authorization') authorization: string | undefined,
-  ): Promise<ReturnPetStatusDto> {
-    const accessToken = this.extractAccessToken(authorization);
-    return this.petService.getStatus(accessToken);
-  }
-
   @Get()
   listOthers(
     @Headers('authorization') authorization: string | undefined,
-  ): Promise<ReturnPetSummaryDto[]> {
+  ): Promise<ReturnPetDto[]> {
     const accessToken = this.extractAccessToken(authorization);
     return this.petService.listOthers(accessToken);
   }

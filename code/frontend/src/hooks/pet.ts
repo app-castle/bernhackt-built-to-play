@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/api";
+import { PetSittingStatus } from "@/lib/types";
 import {
   useMutation,
   useQueryClient,
@@ -12,6 +13,7 @@ interface Pet {
   defense: number;
   attack: number;
   health: number;
+  status: PetSittingStatus;
 }
 
 export function usePet() {
