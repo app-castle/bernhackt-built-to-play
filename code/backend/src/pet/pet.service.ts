@@ -104,8 +104,7 @@ export class PetService {
 
     const factor = this.getXpFactor(pet.dailyKeystrokes);
     const xpAwarded = dto.intensity * factor;
-    pet.xp += xpAwarded;
-    this.applyLevelUps(pet);
+    this.awardXp(pet, xpAwarded);
 
     pet.lastTrainedAt = now;
 
@@ -142,6 +141,7 @@ export class PetService {
   awardXp(pet: Pet, amount: number): void {
     pet.xp += amount;
     this.applyLevelUps(pet);
+    pet.xp = Math.round(pet.xp);
   }
 
   deductXp(pet: Pet, amount: number): void {
