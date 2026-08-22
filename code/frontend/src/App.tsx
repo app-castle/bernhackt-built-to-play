@@ -1,12 +1,21 @@
+import OnboardingPage from "@/pages/OnboardingPage";
+import PetPage from "@/pages/PetPage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
-import { Button } from "@/components/ui/button";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <div>
-      <h1>Hello World</h1>
-      <Button>Click me</Button>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<OnboardingPage />} />
+          <Route path="/pet/:petId" element={<PetPage />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
