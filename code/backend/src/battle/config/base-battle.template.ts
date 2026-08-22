@@ -8,5 +8,5 @@ export const baseBattleTemplate: BattleTemplate = {
   levelDiffXpFactor: 0.05,
   minXpMultiplier: 0.25,
   maxXpMultiplier: 2.5,
-  raidTiredMs: 5 * 60_000,
+  raidTiredMs: 10_0000,
 };
