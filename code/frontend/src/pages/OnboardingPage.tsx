@@ -25,7 +25,7 @@ export default function OnboardingPage() {
 
     createPet({ name: trimmedName })
       .then((pet) => {
-        navigate(`/pet/${pet.id}`);
+        navigate(`/pet/${pet.name}`);
       })
       .catch((error) => {
         console.error("Failed to create pet:", error);
