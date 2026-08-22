@@ -1,11 +1,9 @@
 import OnboardingPage from "@/pages/OnboardingPage";
 import PetPage from "@/pages/PetPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
-import { buttonVariants } from "./components/ui/button";
 import { Toaster } from "./components/ui/toast";
-import { cn } from "./lib/utils";
 
 const queryClient = new QueryClient();
 
@@ -13,35 +11,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <main className="grid grid-rows-[auto_1fr] w-[400px] h-[400px]">
-          <nav>
-            <ul className="flex gap-4 p-4 bg-gray-100">
-              <li>
-                <NavLink
-                  to="/"
-                  className={cn(buttonVariants({ variant: "outline" }))}
-                >
-                  Onboarding
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/pet"
-                  className={cn(buttonVariants({ variant: "outline" }))}
-                >
-                  Pet
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
-          <div className="flex items-center justify-center">
-            <Routes>
-              <Route path="/" element={<OnboardingPage />} />
-              <Route path="/pet" element={<PetPage />} />
-            </Routes>
-          </div>
-          <Toaster />
+        <main className="flex items-center justify-center h-screen w-screen p-2">
+          <Routes>
+            <Route path="/" element={<OnboardingPage />} />
+            <Route path="/pet" element={<PetPage />} />
+          </Routes>
         </main>
+        <Toaster />
       </BrowserRouter>
     </QueryClientProvider>
   );

@@ -15,12 +15,12 @@
         "title": "frontend",
         "width": 400,
         "height": 400,
-        "decorations": true,
+        "decorations": false,
         "transparent": true,
-        "resizable": true,
+        "resizable": false,
         "alwaysOnTop": true,
-        "skipTaskbar": false,
-        "visible": true
+        "skipTaskbar": true,
+        "shadow": false
       }
     ],
     "security": {
