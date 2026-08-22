@@ -1,5 +1,9 @@
 import { API_URL } from "@/lib/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 
 interface Pet {
   name: string;
@@ -13,7 +17,7 @@ interface Pet {
 export function usePet() {
   const queryClient = useQueryClient();
 
-  const petQuery = useQuery<Pet>({
+  const petQuery = useSuspenseQuery<Pet>({
     queryKey: ["pet"],
     queryFn: async () => {
       const accessToken = localStorage.getItem("accessToken");
@@ -60,8 +64,6 @@ export function usePet() {
 
   return {
     pet: petQuery.data,
-    isLoading: petQuery.isLoading,
-    error: petQuery.error,
     refetch: petQuery.refetch,
     train: trainMutation.mutateAsync,
     isTraining: trainMutation.isPending,

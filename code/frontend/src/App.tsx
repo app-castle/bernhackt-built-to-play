@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
 import "./App.css";
 import { buttonVariants } from "./components/ui/button";
+import { Toaster } from "./components/ui/toast";
 import { cn } from "./lib/utils";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ function App() {
           <Route path="/" element={<OnboardingPage />} />
           <Route path="/pet" element={<PetPage />} />
         </Routes>
+        <Toaster />
       </BrowserRouter>
     </QueryClientProvider>
   );
