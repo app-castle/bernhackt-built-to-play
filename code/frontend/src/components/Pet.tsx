@@ -12,8 +12,9 @@ import { useBattleEvents } from "@/hooks/useBattleEvents";
 import { usePetSitting } from "@/hooks/usePetSitting";
 import { usePetSittingEvents } from "@/hooks/usePetSittingEvents";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Badge } from "./ui/badge";
+import { Input } from "./ui/input";
 
 function Pet() {
   const { pet, refetch } = usePet();
@@ -23,6 +24,7 @@ function Pet() {
   const [selectedPetSittingPlayer, setSelectedPetSittingPlayer] = useState<
     string | null
   >(null);
+  const letterRef = useRef<HTMLInputElement>(null);
   const { raid, defend } = useRaid();
   const { sendPet, acceptPetSitting } = usePetSitting();
 
@@ -112,7 +114,7 @@ function Pet() {
                 </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => refetch()}>
                   Refresh
                 </Button>
@@ -133,18 +135,25 @@ function Pet() {
                 </ButtonGroup>
 
                 <ButtonGroup>
+                  <Input type="text" placeholder="Letter ..." ref={letterRef} />
                   <PlayerSelection
                     selectedPlayer={selectedPetSittingPlayer}
                     onPlayerSelect={setSelectedPetSittingPlayer}
                   />
                   <Button
                     disabled={!selectedPetSittingPlayer}
-                    onClick={() =>
+                    onClick={() => {
                       sendPet({
                         hostPetId: selectedPetSittingPlayer!,
-                        letter: "Please take care of my pet!",
-                      })
-                    }
+                        letter:
+                          letterRef.current?.value ||
+                          "Please take care of my pet!",
+                      });
+
+                      if (letterRef.current) {
+                        letterRef.current.value = "";
+                      }
+                    }}
                   >
                     Send Pet
                   </Button>
