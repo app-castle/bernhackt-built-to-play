@@ -65,7 +65,6 @@ export function usePet() {
 
   return {
     pet: petQuery.data,
-    refetch: petQuery.refetch,
     trainPet: trainPetMutation.mutateAsync,
   };
 }

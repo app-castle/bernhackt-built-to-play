@@ -1,7 +1,6 @@
 import { PlayerSelection } from "@/components/PlayerSelection";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/toast";
@@ -20,13 +19,8 @@ import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 
 function Pet() {
-  const { pet, refetch, trainPet } = usePet();
-  const [selectedRaidPlayer, setSelectedRaidPlayer] = useState<string | null>(
-    null,
-  );
-  const [selectedPetSittingPlayer, setSelectedPetSittingPlayer] = useState<
-    string | null
-  >(null);
+  const { pet, trainPet } = usePet();
+  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const letterRef = useRef<HTMLInputElement>(null);
   const { raid, defend } = useRaid();
   const { sendPet, acceptPetSitting } = usePetSitting();
@@ -133,35 +127,33 @@ function Pet() {
 
         <Separator className="my-4" />
 
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => refetch()}>
-            Refresh
-          </Button>
+        <div className="flex flex-col gap-2">
+          <PlayerSelection
+            className="w-auto"
+            selectedPlayer={selectedPlayer}
+            onPlayerSelect={setSelectedPlayer}
+          />
 
-          <ButtonGroup>
-            <PlayerSelection
-              selectedPlayer={selectedRaidPlayer}
-              onPlayerSelect={setSelectedRaidPlayer}
-            />
+          <Input type="text" placeholder="Letter ..." ref={letterRef} />
+
+          <div className="grid grid-cols-2 gap-2">
             <Button
-              disabled={!selectedRaidPlayer}
-              onClick={() => raid({ defenderPetId: selectedRaidPlayer! })}
+              disabled={!selectedPlayer}
+              onClick={() => {
+                raid({ defenderPetId: selectedPlayer! });
+
+                if (letterRef.current) {
+                  letterRef.current.value = "";
+                }
+              }}
             >
               Raid
             </Button>
-          </ButtonGroup>
-
-          <ButtonGroup>
-            <Input type="text" placeholder="Letter ..." ref={letterRef} />
-            <PlayerSelection
-              selectedPlayer={selectedPetSittingPlayer}
-              onPlayerSelect={setSelectedPetSittingPlayer}
-            />
             <Button
-              disabled={!selectedPetSittingPlayer}
+              disabled={!selectedPlayer}
               onClick={() => {
                 sendPet({
-                  hostPetId: selectedPetSittingPlayer!,
+                  hostPetId: selectedPlayer!,
                   letter:
                     letterRef.current?.value || "Please take care of my pet!",
                 });
@@ -173,7 +165,7 @@ function Pet() {
             >
               Send Pet
             </Button>
-          </ButtonGroup>
+          </div>
         </div>
       </CardContent>
     </Card>

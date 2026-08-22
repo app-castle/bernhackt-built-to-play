@@ -10,11 +10,13 @@ import { usePlayers } from "@/hooks/battle";
 interface PlayerSelectionProps {
   selectedPlayer: string | null;
   onPlayerSelect: (playerId: string | null) => void;
+  className?: string;
 }
 
 export const PlayerSelection = ({
   selectedPlayer,
   onPlayerSelect,
+  className,
 }: PlayerSelectionProps) => {
   const { players } = usePlayers();
 
@@ -28,7 +30,7 @@ export const PlayerSelection = ({
       onValueChange={(value) => onPlayerSelect(value)}
       value={selectedPlayer || null}
     >
-      <SelectTrigger>
+      <SelectTrigger className={className}>
         <SelectValue placeholder="Player" />
       </SelectTrigger>
       <SelectContent>
