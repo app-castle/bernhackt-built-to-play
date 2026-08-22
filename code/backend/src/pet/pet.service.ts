@@ -11,8 +11,6 @@ import { Repository } from 'typeorm';
 import { PetActivityService } from '../pet-activity/pet-activity.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { ReturnCreatedPetDto } from './dto/return-created-pet.dto';
-import { ReturnPetStatusDto } from './dto/return-pet-status.dto';
-import { ReturnPetSummaryDto } from './dto/return-pet-summary.dto';
 import { ReturnPetTrainingDto } from './dto/return-pet-training.dto';
 import { ReturnPetDto } from './dto/return-pet.dto';
 import { TrainPetDto } from './dto/train-pet.dto';
@@ -134,24 +132,11 @@ export class PetService {
     };
   }
 
-  async listOthers(accessToken: string): Promise<ReturnPetSummaryDto[]> {
+  async listOthers(accessToken: string): Promise<ReturnPetDto[]> {
     const caller = await this.load(accessToken);
     const others = (await this.findAll()).filter((pet) => pet.id !== caller.id);
-    const statuses = await Promise.all(
-      others.map((pet) => this.petActivityService.getStatus(pet)),
-    );
 
-    return others.map((pet, index) => ({
-      id: pet.id,
-      name: pet.name,
-      level: pet.level,
-      status: statuses[index],
-    }));
-  }
-
-  async getStatus(accessToken: string): Promise<ReturnPetStatusDto> {
-    const pet = await this.load(accessToken);
-    return this.petActivityService.getStatus(pet);
+    return Promise.all(others.map((pet) => this.toReturnPetDto(pet)));
   }
 
   awardXp(pet: Pet, amount: number): void {
@@ -197,16 +182,18 @@ export class PetService {
     };
   }
 
-  private toReturnPetDto(pet: Pet): ReturnPetDto {
+  private async toReturnPetDto(pet: Pet): Promise<ReturnPetDto> {
     return {
       ...this.toReturnPetTrainingDto(pet),
+      id: pet.id,
       name: pet.name,
+      status: await this.petActivityService.getStatus(pet),
     };
   }
 
-  private toReturnCreatedPetDto(pet: Pet): ReturnCreatedPetDto {
+  private async toReturnCreatedPetDto(pet: Pet): Promise<ReturnCreatedPetDto> {
     return {
-      ...this.toReturnPetDto(pet),
+      ...(await this.toReturnPetDto(pet)),
       accessToken: pet.accessToken,
     };
   }
