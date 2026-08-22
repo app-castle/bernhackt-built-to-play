@@ -1,0 +1,1 @@
+export const PET_SITTING_TEMPLATE = Symbol('PET_SITTING_TEMPLATE');

@@ -6,4 +6,5 @@ export interface BattleTemplate {
   levelDiffXpFactor: number;
   minXpMultiplier: number;
   maxXpMultiplier: number;
+  raidTiredMs: number;
 }

@@ -32,6 +32,9 @@ export class Pet {
   @Column({ type: 'date', nullable: true })
   dailyKeystrokesDate: string | null;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  tiredUntil: Date | null;
+
   @Column({ unique: true })
   accessToken: string;
 }

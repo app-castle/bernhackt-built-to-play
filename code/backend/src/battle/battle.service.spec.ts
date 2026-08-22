@@ -4,6 +4,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
+import { PetActivityService } from '../pet-activity/pet-activity.service';
+import { PetEventsService } from '../pet/pet-events.service';
 import { PetService } from '../pet/pet.service';
 import { Pet } from '../pet/entities/pet.entity';
 import { PetTemplate } from '../pet/templates/pet-template.interface';
@@ -19,6 +21,7 @@ const testPetTemplate: PetTemplate = {
   healthGrowth: 0,
   attackGrowth: 0,
   defenseGrowth: 0,
+  tiredDebuff: 0.3,
 };
 
 const testBattleTemplate: BattleTemplate = {
@@ -29,6 +32,7 @@ const testBattleTemplate: BattleTemplate = {
   levelDiffXpFactor: 0.05,
   minXpMultiplier: 0.25,
   maxXpMultiplier: 2.5,
+  raidTiredMs: 5 * 60_000,
 };
 
 function makePet(overrides: Partial<Pet>): Pet {
@@ -43,6 +47,7 @@ function makePet(overrides: Partial<Pet>): Pet {
     lastTrainedAt: null,
     dailyKeystrokes: 0,
     dailyKeystrokesDate: null,
+    tiredUntil: null,
     accessToken: 'token',
     ...overrides,
   };
@@ -89,9 +94,26 @@ describe('BattleService', () => {
     emitChallenge: jest.Mock;
     emitResolved: jest.Mock;
   };
+  let petActivityService: {
+    isInActiveBattle: jest.Mock;
+    isPetSittingBusy: jest.Mock;
+    getStatus: jest.Mock;
+    isAvailable: jest.Mock;
+    isTired: jest.Mock;
+  };
   let battleService: BattleService;
 
   beforeEach(() => {
+    petActivityService = {
+      isInActiveBattle: jest.fn().mockResolvedValue(false),
+      isPetSittingBusy: jest.fn().mockResolvedValue(false),
+      getStatus: jest.fn(),
+      isAvailable: jest.fn().mockResolvedValue(true),
+      isTired: jest.fn(
+        (pet: Pet) => !!pet.tiredUntil && pet.tiredUntil.getTime() > Date.now(),
+      ),
+    };
+
     challenger = makePet({
       id: 'challenger-1',
       accessToken: 'challenger-token',
@@ -124,6 +146,8 @@ describe('BattleService', () => {
     petService = new PetService(
       petRepository as unknown as Repository<Pet>,
       testPetTemplate,
+      { emitTrained: jest.fn() } as unknown as PetEventsService,
+      petActivityService as unknown as PetActivityService,
     );
 
     battleRepository = {
@@ -156,6 +180,7 @@ describe('BattleService', () => {
       battleRepository as unknown as Repository<Battle>,
       dataSource as unknown as DataSource,
       petService,
+      petActivityService as unknown as PetActivityService,
       battleEventsService as unknown as BattleEventsService,
       testBattleTemplate,
     );
@@ -194,6 +219,44 @@ describe('BattleService', () => {
           defenderPetId: defender.id,
         }),
       ).rejects.toThrow(ConflictException);
+    });
+
+    it('rejects when the challenger is busy pet sitting', async () => {
+      battleRepository.find.mockResolvedValue([]);
+      petActivityService.isPetSittingBusy.mockResolvedValueOnce(true);
+
+      await expect(
+        battleService.challenge(challenger.accessToken, {
+          defenderPetId: defender.id,
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('rejects when the challenger is tired', async () => {
+      battleRepository.find.mockResolvedValue([]);
+      challenger.tiredUntil = new Date(Date.now() + 60_000);
+
+      await expect(
+        battleService.challenge(challenger.accessToken, {
+          defenderPetId: defender.id,
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('allows challenging a tired defender', async () => {
+      battleRepository.find.mockResolvedValue([]);
+      defender.tiredUntil = new Date(Date.now() + 60_000);
+      const setTimeoutSpy = jest
+        .spyOn(global, 'setTimeout')
+        .mockImplementation(() => 0 as unknown as NodeJS.Timeout);
+
+      const result = await battleService.challenge(challenger.accessToken, {
+        defenderPetId: defender.id,
+      });
+
+      expect(result.status).toBe(BattleStatus.PENDING);
+
+      setTimeoutSpy.mockRestore();
     });
 
     it('creates a pending battle and emits an SSE challenge event', async () => {
@@ -249,6 +312,45 @@ describe('BattleService', () => {
           defended: true,
         }),
       );
+    });
+
+    it('sets tiredUntil on both pets after resolving', async () => {
+      const battle = makeBattle({
+        createdAt: new Date(),
+        status: BattleStatus.PENDING,
+      });
+      battleRepository.findOneBy.mockResolvedValue(battle);
+      manager.findOne.mockResolvedValue(battle);
+
+      const before = Date.now();
+      await battleService.accept(defender.accessToken, battle.id);
+
+      expect(challenger.tiredUntil).not.toBeNull();
+      expect(defender.tiredUntil).not.toBeNull();
+      expect(challenger.tiredUntil!.getTime()).toBeGreaterThanOrEqual(
+        before + testBattleTemplate.raidTiredMs,
+      );
+      expect(defender.tiredUntil!.getTime()).toBe(
+        challenger.tiredUntil!.getTime(),
+      );
+    });
+
+    it('applies the tiredness debuff to a tired defender, letting the challenger win despite the defense boost', async () => {
+      defender.tiredUntil = new Date(Date.now() + 60_000);
+      const battle = makeBattle({
+        createdAt: new Date(),
+        status: BattleStatus.PENDING,
+      });
+      battleRepository.findOneBy.mockResolvedValue(battle);
+      manager.findOne.mockResolvedValue(battle);
+
+      const result = await battleService.accept(
+        defender.accessToken,
+        battle.id,
+      );
+
+      expect(result.defended).toBe(true);
+      expect(result.winnerPetId).toBe(challenger.id);
     });
 
     it('does not re-emit battle.resolved when accept() races an already-resolved battle', async () => {
@@ -364,23 +466,6 @@ describe('BattleService', () => {
 
       expect(result.defenderXpChange).toBe(40 * 2.5);
       expect(result.challengerXpChange).toBe(-40 * 2.5);
-    });
-  });
-
-  describe('listPlayers', () => {
-    it('excludes the caller and reports in-battle status', async () => {
-      battleRepository.find.mockResolvedValue([
-        makeBattle({
-          challengerPetId: defender.id,
-          defenderPetId: 'someone-else',
-          status: BattleStatus.PENDING,
-        }),
-      ]);
-
-      const players = await battleService.listPlayers(challenger.accessToken);
-
-      expect(players).toHaveLength(1);
-      expect(players[0]).toMatchObject({ id: defender.id, inBattle: true });
     });
   });
 });

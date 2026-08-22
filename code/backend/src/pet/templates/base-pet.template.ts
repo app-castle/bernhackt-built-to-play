@@ -7,4 +7,5 @@ export const basePetTemplate: PetTemplate = {
   healthGrowth: 5,
   attackGrowth: 2,
   defenseGrowth: 1,
+  tiredDebuff: 0.3,
 };

@@ -13,7 +13,6 @@ describe('BattleController', () => {
 
   beforeEach(() => {
     battleService = {
-      listPlayers: jest.fn(),
       challenge: jest.fn(),
       accept: jest.fn(),
       listMine: jest.fn(),
@@ -29,21 +28,12 @@ describe('BattleController', () => {
     );
   });
 
-  it('extracts the bearer token and delegates listPlayers', async () => {
-    await controller.listPlayers('Bearer abc123');
-    expect(battleService.listPlayers).toHaveBeenCalledWith('abc123');
-  });
-
   it('throws UnauthorizedException when the authorization header is missing', () => {
-    expect(() => controller.listPlayers(undefined)).toThrow(
-      UnauthorizedException,
-    );
+    expect(() => controller.listMine(undefined)).toThrow(UnauthorizedException);
   });
 
   it('throws UnauthorizedException when the authorization header has no Bearer prefix', () => {
-    expect(() => controller.listPlayers('abc123')).toThrow(
-      UnauthorizedException,
-    );
+    expect(() => controller.listMine('abc123')).toThrow(UnauthorizedException);
   });
 
   it('delegates challenge with the extracted token and body', async () => {

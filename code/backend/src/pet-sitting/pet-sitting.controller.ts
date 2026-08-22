@@ -12,43 +12,43 @@ import {
 } from '@nestjs/common';
 import { Observable, from, switchMap } from 'rxjs';
 import { PetService } from '../pet/pet.service';
-import { BattleEventsService } from './battle-events.service';
-import { BattleService } from './battle.service';
-import { ChallengeBattleDto } from './dto/challenge-battle.dto';
-import { ReturnBattleDto } from './dto/return-battle.dto';
+import { CreatePetSittingDto } from './dto/create-pet-sitting.dto';
+import { ReturnPetSittingDto } from './dto/return-pet-sitting.dto';
+import { PetSittingEventsService } from './pet-sitting-events.service';
+import { PetSittingService } from './pet-sitting.service';
 
-@Controller('battles')
-export class BattleController {
+@Controller('pet-sitting')
+export class PetSittingController {
   constructor(
-    private readonly battleService: BattleService,
+    private readonly petSittingService: PetSittingService,
     private readonly petService: PetService,
-    private readonly battleEventsService: BattleEventsService,
+    private readonly petSittingEventsService: PetSittingEventsService,
   ) {}
 
   @Post()
-  challenge(
+  send(
     @Headers('authorization') authorization: string | undefined,
-    @Body() dto: ChallengeBattleDto,
-  ): Promise<ReturnBattleDto> {
+    @Body() dto: CreatePetSittingDto,
+  ): Promise<ReturnPetSittingDto> {
     const accessToken = this.extractAccessToken(authorization);
-    return this.battleService.challenge(accessToken, dto);
+    return this.petSittingService.send(accessToken, dto);
   }
 
   @Post(':id/accept')
   accept(
     @Headers('authorization') authorization: string | undefined,
     @Param('id') id: string,
-  ): Promise<ReturnBattleDto> {
+  ): Promise<ReturnPetSittingDto> {
     const accessToken = this.extractAccessToken(authorization);
-    return this.battleService.accept(accessToken, id);
+    return this.petSittingService.accept(accessToken, id);
   }
 
   @Get('me')
   listMine(
     @Headers('authorization') authorization: string | undefined,
-  ): Promise<ReturnBattleDto[]> {
+  ): Promise<ReturnPetSittingDto[]> {
     const accessToken = this.extractAccessToken(authorization);
-    return this.battleService.listMine(accessToken);
+    return this.petSittingService.listMine(accessToken);
   }
 
   @Sse('events')
@@ -58,7 +58,7 @@ export class BattleController {
     }
 
     return from(this.petService.load(token)).pipe(
-      switchMap((pet) => this.battleEventsService.streamFor(pet.id)),
+      switchMap((pet) => this.petSittingEventsService.streamFor(pet.id)),
     );
   }
 
@@ -66,9 +66,9 @@ export class BattleController {
   getById(
     @Headers('authorization') authorization: string | undefined,
     @Param('id') id: string,
-  ): Promise<ReturnBattleDto> {
+  ): Promise<ReturnPetSittingDto> {
     const accessToken = this.extractAccessToken(authorization);
-    return this.battleService.getById(accessToken, id);
+    return this.petSittingService.getById(accessToken, id);
   }
 
   private extractAccessToken(authorization: string | undefined): string {

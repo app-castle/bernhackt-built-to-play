@@ -8,12 +8,16 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'node:crypto';
 import { Repository } from 'typeorm';
+import { PetActivityService } from '../pet-activity/pet-activity.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { ReturnCreatedPetDto } from './dto/return-created-pet.dto';
+import { ReturnPetStatusDto } from './dto/return-pet-status.dto';
+import { ReturnPetSummaryDto } from './dto/return-pet-summary.dto';
 import { ReturnPetTrainingDto } from './dto/return-pet-training.dto';
 import { ReturnPetDto } from './dto/return-pet.dto';
 import { TrainPetDto } from './dto/train-pet.dto';
 import { Pet } from './entities/pet.entity';
+import { PetEventsService } from './pet-events.service';
 import type { PetTemplate } from './templates/pet-template.interface';
 import { PET_TEMPLATE } from './templates/pet-template.token';
 
@@ -28,6 +32,8 @@ export class PetService {
     private readonly petRepository: Repository<Pet>,
     @Inject(PET_TEMPLATE)
     private readonly petTemplate: PetTemplate,
+    private readonly petEventsService: PetEventsService,
+    private readonly petActivityService: PetActivityService,
   ) {}
 
   async create(dto: CreatePetDto): Promise<ReturnCreatedPetDto> {
@@ -99,12 +105,14 @@ export class PetService {
     pet.dailyKeystrokes += dto.intensity;
 
     const factor = this.getXpFactor(pet.dailyKeystrokes);
-    pet.xp += dto.intensity * factor;
+    const xpAwarded = dto.intensity * factor;
+    pet.xp += xpAwarded;
     this.applyLevelUps(pet);
 
     pet.lastTrainedAt = now;
 
     const savedPet = await this.petRepository.save(pet);
+    this.petEventsService.emitTrained({ petId: savedPet.id, xpAwarded });
     return this.toReturnPetTrainingDto(savedPet);
   }
 
@@ -114,11 +122,36 @@ export class PetService {
     health: number;
   } {
     const growthLevels = pet.level - 1;
+    const debuff = this.petActivityService.isTired(pet)
+      ? 1 - this.petTemplate.tiredDebuff
+      : 1;
     return {
-      attack: pet.attack + this.petTemplate.attackGrowth * growthLevels,
-      defense: pet.defense + this.petTemplate.defenseGrowth * growthLevels,
+      attack:
+        (pet.attack + this.petTemplate.attackGrowth * growthLevels) * debuff,
+      defense:
+        (pet.defense + this.petTemplate.defenseGrowth * growthLevels) * debuff,
       health: pet.health + this.petTemplate.healthGrowth * growthLevels,
     };
+  }
+
+  async listOthers(accessToken: string): Promise<ReturnPetSummaryDto[]> {
+    const caller = await this.load(accessToken);
+    const others = (await this.findAll()).filter((pet) => pet.id !== caller.id);
+    const statuses = await Promise.all(
+      others.map((pet) => this.petActivityService.getStatus(pet)),
+    );
+
+    return others.map((pet, index) => ({
+      id: pet.id,
+      name: pet.name,
+      level: pet.level,
+      status: statuses[index],
+    }));
+  }
+
+  async getStatus(accessToken: string): Promise<ReturnPetStatusDto> {
+    const pet = await this.load(accessToken);
+    return this.petActivityService.getStatus(pet);
   }
 
   awardXp(pet: Pet, amount: number): void {

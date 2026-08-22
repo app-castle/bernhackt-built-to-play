@@ -95,21 +95,44 @@ Get the current state of the caller's pet.
   - `401 Unauthorized` — missing or malformed access token
   - `404 Not Found` — no pet exists for the given access token
 
+### `GET /pets/me/status` — Auth
+
+Get the caller's pet's status. This is computed live from active battles, active/pending pet-sitting invitations, and tiredness — nothing is stored on the pet itself as a "busy" flag.
+
+- **Input**: none (access token only)
+- **Output** (200, [ReturnPetStatusDto](src/pet/dto/return-pet-status.dto.ts)):
+  ```json
+  { "state": "available", "availableAt": null }
+  ```
+  `state` is one of `available`, `raiding`, `pet_sitting`, `tired`. `availableAt` is only set (to the timestamp the pet stops being tired) when `state` is `tired`.
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `404 Not Found` — no pet exists for the given access token
+
+### `GET /pets` — Auth
+
+List every other pet (the caller is excluded) along with its computed status — used both for picking a raid target and for picking a pet-sitting host.
+
+- **Input**: none (access token only)
+- **Output** (200, array of [ReturnPetSummaryDto](src/pet/dto/return-pet-summary.dto.ts)):
+  ```json
+  [
+    {
+      "id": "uuid",
+      "name": "string",
+      "level": 1,
+      "status": { "state": "available", "availableAt": null }
+    }
+  ]
+  ```
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+
 All battle endpoints are under `/battles`. Endpoints marked "Auth" require an `Authorization: Bearer <accessToken>` header, same as above, except the SSE stream, which takes the token as a `?token=` query parameter instead (the browser `EventSource` API can't set custom headers).
 
 A challenge stays `pending` for 15 seconds (`reactionWindowMs`, [base-battle.template.ts](src/battle/config/base-battle.template.ts)). If the defender accepts in time via `POST /battles/:id/accept`, their defense gets a +20% boost for the fight; if the window elapses unanswered, it's auto-resolved instead with a -20% defense malus. Either way the winner gains XP and the loser loses XP (floored at 0), scaled by the level gap between them — see `computeBattleOutcome` in [battle-combat.ts](src/battle/battle-combat.ts) for the exact formula.
 
-### `GET /battles/players` — Auth
-
-List other pets that can be challenged (the caller is excluded).
-
-- **Input**: none (access token only)
-- **Output** (200, array of [ReturnPlayerDto](src/battle/dto/return-player.dto.ts)):
-  ```json
-  [{ "id": "uuid", "name": "string", "level": 1, "inBattle": false }]
-  ```
-- **Errors**:
-  - `401 Unauthorized` — missing or malformed access token
+Both pets are also left `tired` for 5 minutes afterward (`raidTiredMs`), which reduces their attack and defense by 30% (`tiredDebuff`, [base-pet.template.ts](src/pet/templates/base-pet.template.ts)) for the *next* fight — computed live off `tiredUntil`, not a stored battle outcome. A tired pet cannot issue a new challenge itself, but it remains a valid (and weaker) target for others. Use `GET /pets` (above) to see who's currently tired before picking a target.
 
 ### `POST /battles` — Auth
 
@@ -140,7 +163,7 @@ Challenge another pet to a battle. Fails if either pet is already in a pending b
   - `401 Unauthorized` — missing or malformed access token
   - `400 Bad Request` — challenging your own pet
   - `404 Not Found` — no pet exists for `defenderPetId`
-  - `409 Conflict` — the caller or the defender is already in a pending battle
+  - `409 Conflict` — the caller or the defender is already in a pending battle, either pet is currently pet sitting (sending or hosting), or the caller is tired
 
 ### `POST /battles/:id/accept` — Auth
 
@@ -199,6 +222,107 @@ Server-Sent Events stream of battle notifications for the caller's pet. Keep the
     "challengerXpChange": 40,
     "defenderXpChange": -40,
     "resolvedAt": "2024-01-01T00:00:15.000Z"
+  }
+  ```
+- **Errors**:
+  - `401 Unauthorized` — missing or invalid token query param
+
+All pet-sitting endpoints are under `/pet-sitting`. Endpoints marked "Auth" require an `Authorization: Bearer <accessToken>` header, same as above, except the SSE stream, which takes the token as a `?token=` query parameter instead.
+
+Sending a pet requires both the sender and the host pet to currently be `available` (not tired, raiding, or already involved in another pet-sitting invite/session) — a pending invite counts as busy for the sender immediately, blocking them from raiding or sending again until it's accepted or expires. An invite stays `pending` for 5 minutes (`inviteExpiryMs`, [base-pet-sitting.template.ts](src/pet-sitting/config/base-pet-sitting.template.ts)); if the host doesn't accept in time, it auto-expires. Once accepted, the session runs for 1 hour (`sessionDurationMs`) and then auto-ends — there's no manual recall. While hosting, every time the host's pet is trained (`POST /pets/training`), the sent pet earns the same XP.
+
+### `POST /pet-sitting` — Auth
+
+Send the caller's pet to another pet's owner for pet sitting, with a letter.
+
+- **Input** (JSON body, [CreatePetSittingDto](src/pet-sitting/dto/create-pet-sitting.dto.ts)):
+  ```json
+  { "hostPetId": "uuid", "letter": "string" }
+  ```
+  `letter` must be 1–1000 characters.
+- **Output** (201, [ReturnPetSittingDto](src/pet-sitting/dto/return-pet-sitting.dto.ts)):
+  ```json
+  {
+    "id": "uuid",
+    "senderPetId": "uuid",
+    "hostPetId": "uuid",
+    "letter": "string",
+    "status": "pending",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "acceptedAt": null,
+    "endedAt": null
+  }
+  ```
+  Also pushes a `pet-sitting.invited` event to the host's SSE stream (see below).
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `400 Bad Request` — sending your pet to itself
+  - `404 Not Found` — no pet exists for `hostPetId`
+  - `409 Conflict` — the sender or the host pet is not currently available
+
+### `POST /pet-sitting/:id/accept` — Auth
+
+Accept a pending invitation, starting the session immediately.
+
+- **Input**: none (access token only, must belong to the invitation's host)
+- **Output** (201, [ReturnPetSittingDto](src/pet-sitting/dto/return-pet-sitting.dto.ts)) — same shape as above, now `status: "active"` with `acceptedAt` set. Also pushes a `pet-sitting.started` event to both the sender and the host's SSE streams.
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `403 Forbidden` — caller is not the host of this invitation
+  - `404 Not Found` — no invitation exists for the given id
+  - `409 Conflict` — the invitation is no longer pending (already active, ended, or expired)
+
+### `GET /pet-sitting/:id` — Auth
+
+Fetch an invitation/session's current state (auto-expires or auto-ends it first if its window has since elapsed).
+
+- **Input**: none (access token only)
+- **Output** (200, [ReturnPetSittingDto](src/pet-sitting/dto/return-pet-sitting.dto.ts))
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `404 Not Found` — no invitation exists for the given id
+
+### `GET /pet-sitting/me` — Auth
+
+List the caller's pet-sitting invitations/sessions (as sender or host), newest first.
+
+- **Input**: none (access token only)
+- **Output** (200, array of [ReturnPetSittingDto](src/pet-sitting/dto/return-pet-sitting.dto.ts))
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+
+### `GET /pet-sitting/events?token=<accessToken>`
+
+Server-Sent Events stream of pet-sitting notifications for the caller's pet. Keep the connection open to receive:
+
+- `pet-sitting.invited` — sent only to the host when someone sends them a pet:
+  ```json
+  {
+    "petSittingId": "uuid",
+    "senderPetId": "uuid",
+    "senderName": "string",
+    "hostPetId": "uuid",
+    "letter": "string",
+    "expiresAt": "2024-01-01T00:05:00.000Z"
+  }
+  ```
+- `pet-sitting.started` — sent to both the sender and the host once the invitation is accepted:
+  ```json
+  {
+    "petSittingId": "uuid",
+    "senderPetId": "uuid",
+    "hostPetId": "uuid",
+    "startedAt": "2024-01-01T00:00:00.000Z",
+    "endsAt": "2024-01-01T01:00:00.000Z"
+  }
+  ```
+- `pet-sitting.ended` — sent to both the sender and the host once the session auto-ends after an hour:
+  ```json
+  {
+    "petSittingId": "uuid",
+    "senderPetId": "uuid",
+    "hostPetId": "uuid",
+    "endedAt": "2024-01-01T01:00:00.000Z"
   }
   ```
 - **Errors**:

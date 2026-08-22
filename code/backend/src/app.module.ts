@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
 import { validate } from './config/env.validation';
 import { BattleModule } from './battle/battle.module';
+import { PetActivityModule } from './pet-activity/pet-activity.module';
+import { PetSittingModule } from './pet-sitting/pet-sitting.module';
 import { PetModule } from './pet/pet.module';
 
 @Module({
@@ -29,7 +31,9 @@ import { PetModule } from './pet/pet.module';
       }),
     }),
     PetModule,
+    PetActivityModule,
     BattleModule,
+    PetSittingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -5,4 +5,5 @@ export interface PetTemplate {
   healthGrowth: number;
   attackGrowth: number;
   defenseGrowth: number;
+  tiredDebuff: number;
 }

@@ -8,12 +8,12 @@ import {
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+import { PetActivityService } from '../pet-activity/pet-activity.service';
 import { PetService } from '../pet/pet.service';
 import type { BattleTemplate } from './config/battle-template.interface';
 import { BATTLE_TEMPLATE } from './config/battle-template.token';
 import { ChallengeBattleDto } from './dto/challenge-battle.dto';
 import { ReturnBattleDto } from './dto/return-battle.dto';
-import { ReturnPlayerDto } from './dto/return-player.dto';
 import { Battle, BattleStatus } from './entities/battle.entity';
 import { BattleEventsService } from './battle-events.service';
 import { computeBattleOutcome } from './battle-combat';
@@ -29,27 +29,11 @@ export class BattleService {
     @InjectDataSource()
     private readonly dataSource: DataSource,
     private readonly petService: PetService,
+    private readonly petActivityService: PetActivityService,
     private readonly battleEventsService: BattleEventsService,
     @Inject(BATTLE_TEMPLATE)
     private readonly battleTemplate: BattleTemplate,
   ) {}
-
-  async listPlayers(accessToken: string): Promise<ReturnPlayerDto[]> {
-    const caller = await this.petService.load(accessToken);
-    const [pets, activePetIds] = await Promise.all([
-      this.petService.findAll(),
-      this.getActivePetIds(),
-    ]);
-
-    return pets
-      .filter((pet) => pet.id !== caller.id)
-      .map((pet) => ({
-        id: pet.id,
-        name: pet.name,
-        level: pet.level,
-        inBattle: activePetIds.has(pet.id),
-      }));
-  }
 
   async challenge(
     accessToken: string,
@@ -69,6 +53,18 @@ export class BattleService {
 
     if (await this.isInActiveBattle(defender.id)) {
       throw new ConflictException('That player is already in a battle');
+    }
+
+    if (await this.petActivityService.isPetSittingBusy(challenger.id)) {
+      throw new ConflictException('Your pet is busy pet sitting');
+    }
+
+    if (await this.petActivityService.isPetSittingBusy(defender.id)) {
+      throw new ConflictException('That pet is busy pet sitting');
+    }
+
+    if (this.petActivityService.isTired(challenger)) {
+      throw new ConflictException('Your pet is too tired to raid');
     }
 
     const now = new Date();
@@ -142,22 +138,6 @@ export class BattleService {
       battles.map((battle) => this.resolveIfExpired(battle)),
     );
     return resolved.map((battle) => this.toReturnBattleDto(battle));
-  }
-
-  private async getActivePetIds(): Promise<Set<string>> {
-    const pending = await this.battleRepository.find({
-      where: { status: BattleStatus.PENDING },
-    });
-
-    const activeIds = new Set<string>();
-    for (const battle of pending) {
-      const resolved = await this.resolveIfExpired(battle);
-      if (resolved.status === BattleStatus.PENDING) {
-        activeIds.add(resolved.challengerPetId);
-        activeIds.add(resolved.defenderPetId);
-      }
-    }
-    return activeIds;
   }
 
   private async isInActiveBattle(petId: string): Promise<boolean> {
@@ -237,6 +217,12 @@ export class BattleService {
 
         this.petService.awardXp(winner, xpAmount);
         this.petService.deductXp(loser, xpAmount);
+
+        const tiredUntil = new Date(
+          resolvedAt.getTime() + this.battleTemplate.raidTiredMs,
+        );
+        challenger.tiredUntil = tiredUntil;
+        defender.tiredUntil = tiredUntil;
 
         battle.status = BattleStatus.RESOLVED;
         battle.defended = defended;
