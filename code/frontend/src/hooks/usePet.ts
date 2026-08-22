@@ -1,3 +1,4 @@
+import { API_URL } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface CreatePetDto {
@@ -19,9 +20,9 @@ export function usePet() {
   const petQuery = useQuery<Pet>({
     queryKey: ["pet"],
     queryFn: async () => {
-      const response = await fetch("/api/pet", {
+      const response = await fetch(`${API_URL}/api/pet`, {
         headers: {
-          // Add token here after login
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
       return response.json();
@@ -31,7 +32,7 @@ export function usePet() {
   // Create pet mutation
   const createPetMutation = useMutation({
     mutationFn: async (data: CreatePetDto): Promise<Pet> => {
-      const response = await fetch("/api/pet", {
+      const response = await fetch(`${API_URL}/api/pet`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
