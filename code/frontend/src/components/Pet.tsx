@@ -9,13 +9,48 @@ import { toast } from "@/components/ui/toast";
 import { useRaid } from "@/hooks/battle";
 import { usePet } from "@/hooks/pet";
 import { useBattleEvents } from "@/hooks/useBattleEvents";
+import { usePetSitting } from "@/hooks/usePetSitting";
+import { usePetSittingEvents } from "@/hooks/usePetSittingEvents";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Badge } from "./ui/badge";
 
 function Pet() {
   const { pet, refetch } = usePet();
-  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [selectedRaidPlayer, setSelectedRaidPlayer] = useState<string | null>(
+    null,
+  );
+  const [selectedPetSittingPlayer, setSelectedPetSittingPlayer] = useState<
+    string | null
+  >(null);
   const { raid, defend } = useRaid();
+  const { sendPet, acceptPetSitting } = usePetSitting();
+
+  usePetSittingEvents({
+    petSittingInvited: (data) => {
+      console.log("Pet sitting invited event received:", data);
+      const id = toast.add({
+        title: `${data.senderName} would like to stay at your place!`,
+        description: data.letter,
+        timeout: data.expiresAt.getTime() - Date.now(),
+        actionProps: {
+          children: "Accept",
+          onClick: () => {
+            acceptPetSitting(data.petSittingId);
+            toast.close(id);
+          },
+        },
+      });
+    },
+    petSittingStarted: (data) => {
+      console.log("Pet sitting started event received:", data);
+      queryClient.invalidateQueries({ queryKey: ["pet"] });
+    },
+    petSittingEnded: (data) => {
+      (console.log("Pet sitting ended event received:", data),
+        queryClient.invalidateQueries({ queryKey: ["pet"] }));
+    },
+  });
 
   const queryClient = useQueryClient();
 
@@ -56,6 +91,7 @@ function Pet() {
             <div className="space-y-1">
               <CardTitle className="text-3xl">{pet.name}</CardTitle>
               <p className="text-sm text-muted-foreground">Level {pet.level}</p>
+              <Badge>{pet.status.state}</Badge>
             </div>
           </div>
           <Separator className="my-4" />
@@ -85,14 +121,32 @@ function Pet() {
 
                 <ButtonGroup>
                   <PlayerSelection
-                    selectedPlayer={selectedPlayer}
-                    onPlayerSelect={setSelectedPlayer}
+                    selectedPlayer={selectedRaidPlayer}
+                    onPlayerSelect={setSelectedRaidPlayer}
                   />
                   <Button
-                    disabled={!selectedPlayer}
-                    onClick={() => raid({ defenderPetId: selectedPlayer! })}
+                    disabled={!selectedRaidPlayer}
+                    onClick={() => raid({ defenderPetId: selectedRaidPlayer! })}
                   >
                     Raid
+                  </Button>
+                </ButtonGroup>
+
+                <ButtonGroup>
+                  <PlayerSelection
+                    selectedPlayer={selectedPetSittingPlayer}
+                    onPlayerSelect={setSelectedPetSittingPlayer}
+                  />
+                  <Button
+                    disabled={!selectedPetSittingPlayer}
+                    onClick={() =>
+                      sendPet({
+                        hostPetId: selectedPetSittingPlayer!,
+                        letter: "Please take care of my pet!",
+                      })
+                    }
+                  >
+                    Send Pet
                   </Button>
                 </ButtonGroup>
               </div>

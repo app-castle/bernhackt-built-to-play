@@ -12,6 +12,10 @@ interface Pet {
   defense: number;
   attack: number;
   health: number;
+  status: {
+    state: "available" | "raiding" | "pet_sitting" | "tired";
+    availableAt: Date | null;
+  };
 }
 
 export function usePet() {
