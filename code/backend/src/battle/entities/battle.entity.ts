@@ -34,7 +34,7 @@ export class Battle {
   @Column({ type: 'enum', enum: BattleStatus, default: BattleStatus.PENDING })
   status: BattleStatus;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   defended: boolean;
 
   @Column({ type: 'uuid', nullable: true })
