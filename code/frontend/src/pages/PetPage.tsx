@@ -94,12 +94,6 @@ function PetPage() {
               </div>
 
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => (window.location.href = "/")}
-                >
-                  Back
-                </Button>
                 <Button variant="outline" onClick={() => refetch()}>
                   Refresh
                 </Button>
