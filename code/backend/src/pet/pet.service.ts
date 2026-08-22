@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto';
 import {
   HttpException,
   HttpStatus,
@@ -7,17 +6,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomBytes } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { ReturnCreatedPetDto } from './dto/return-created-pet.dto';
-import { ReturnPetDto } from './dto/return-pet.dto';
 import { ReturnPetTrainingDto } from './dto/return-pet-training.dto';
+import { ReturnPetDto } from './dto/return-pet.dto';
 import { TrainPetDto } from './dto/train-pet.dto';
 import { Pet } from './entities/pet.entity';
 import type { PetTemplate } from './templates/pet-template.interface';
 import { PET_TEMPLATE } from './templates/pet-template.token';
 
-const TRAINING_COOLDOWN_MS = 30_000;
+const TRAINING_COOLDOWN_MS = 0; // as long as we got the cookie clicker variant
 const LEVEL_UP_BASE_XP = 100;
 const LEVEL_UP_GROWTH_RATE = 1.2;
 
