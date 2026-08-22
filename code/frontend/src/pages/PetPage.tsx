@@ -1,9 +1,21 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "@/components/ui/toast";
+import { usePlayers, useRaid } from "@/hooks/battle";
 import { usePet } from "@/hooks/pet";
+import { useBattleEvents } from "@/hooks/useBattleEvents";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 
@@ -11,6 +23,35 @@ function PetPage() {
   const { pet, isLoading, error, refetch, train } = usePet();
   const [clickCount, setClickCount] = useState(0);
   const timer = useRef<NodeJS.Timeout | null>(null);
+  const { players } = usePlayers();
+  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const { raid, defend } = useRaid();
+
+  const queryClient = useQueryClient();
+
+  useBattleEvents({
+    onBattleChallenged: (data) => {
+      console.log("Battle challenged event received:", data);
+      toast.add({
+        title: `${data.challengerName} is raiding you!`,
+        timeout: data.expiresAt.getTime() - Date.now(),
+        actionProps: {
+          children: "Defend",
+          onClick: () => {
+            defend({ battleId: data.battleId });
+          },
+        },
+      });
+    },
+    onBattleResolved: (data) => {
+      console.log("Battle resolved event received:", data);
+      queryClient.invalidateQueries({ queryKey: ["pet"] });
+    },
+  });
+
+  const playerSelection = players?.map(
+    (p) => ({ label: p.name, value: p.id }) as const,
+  );
 
   const handleTrainClick = () => {
     // Increment click counter
@@ -116,9 +157,37 @@ function PetPage() {
                 <Button variant="outline" onClick={() => refetch()}>
                   Refresh
                 </Button>
+
                 <Button variant="outline" onClick={handleTrainClick}>
                   Train {clickCount > 0 ? `(+${clickCount} EXP)` : ""}
                 </Button>
+
+                {playerSelection && playerSelection.length > 0 && (
+                  <ButtonGroup>
+                    <Select
+                      items={playerSelection}
+                      onValueChange={(value) => setSelectedPlayer(value)}
+                      value={selectedPlayer || null}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Player" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {playerSelection.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      disabled={!selectedPlayer}
+                      onClick={() => raid({ defenderPetId: selectedPlayer! })}
+                    >
+                      Raid
+                    </Button>
+                  </ButtonGroup>
+                )}
               </div>
             </>
           </div>
