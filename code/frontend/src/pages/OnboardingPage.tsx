@@ -33,38 +33,31 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Name your pet</CardTitle>
-          <CardDescription>
-            Enter a name for your pet to continue
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="pet-name" className="text-sm font-medium">
-                Pet name
-              </label>
-              <Input
-                id="pet-name"
-                value={petName}
-                onChange={(e) => setPetName(e.target.value)}
-                placeholder="Enter your pet's name"
-                autoFocus
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={!petName.trim() || isPending}
-            >
-              {isPending ? "Creating..." : "Continue"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Name your pet</CardTitle>
+        <CardDescription>Enter a name for your pet to continue</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              id="pet-name"
+              value={petName}
+              onChange={(e) => setPetName(e.target.value)}
+              placeholder="Hi! My name is ..."
+              autoFocus
+            />
+          </div>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={!petName.trim() || isPending}
+          >
+            {isPending ? "Creating..." : "Continue"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

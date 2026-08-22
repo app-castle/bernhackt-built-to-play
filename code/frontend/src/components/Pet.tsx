@@ -12,6 +12,8 @@ import { useBattleEvents } from "@/hooks/useBattleEvents";
 import { usePetSitting } from "@/hooks/usePetSitting";
 import { usePetSittingEvents } from "@/hooks/usePetSittingEvents";
 import { useQueryClient } from "@tanstack/react-query";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { HeartIcon, ShieldIcon, SwordIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
@@ -80,104 +82,98 @@ function Pet() {
     throw new Error("Pet data is not available");
   }
 
+  const window = getCurrentWindow();
+
+  const handlePointerDown = async () => {
+    await window.startDragging();
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                {pet.name[0].toUpperCase() || "?"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-1">
-              <CardTitle className="text-3xl">{pet.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">Level {pet.level}</p>
-              <Badge>{pet.status.state}</Badge>
-            </div>
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center gap-4">
+          <Avatar className="h-20 w-20" onPointerDown={handlePointerDown}>
+            <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+              {pet.name[0].toUpperCase() || "?"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <CardTitle className="text-xl">{pet.name}</CardTitle>
+            <p className="text-sm text-muted-foreground">Level {pet.level}</p>
+            <Badge>{pet.status.state}</Badge>
           </div>
-          <Separator className="my-4" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <StatCard label="XP" value={pet.xp} />
-                <StatCard label="Attack" value={pet.attack} />
-                <StatCard label="Defense" value={pet.defense} />
-                <StatCard label="Health" value={pet.health} />
-              </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Separator className="my-4" />
+        <div className="flex flex-wrap gap-2 justify-center">
+          <Badge className="flex gap-1 justify-between min-w-15">
+            <span>XP</span>
+            {pet.xp}
+          </Badge>
+          <Badge className="flex gap-1 justify-between min-w-15">
+            <SwordIcon />
+            {pet.attack}
+          </Badge>
+          <Badge className="flex gap-1 justify-between min-w-15">
+            <ShieldIcon />
+            {pet.defense}
+          </Badge>
+          <Badge className="flex gap-1 justify-between min-w-15">
+            <HeartIcon />
+            {pet.health}
+          </Badge>
+        </div>
 
-              <div className="p-4 border rounded-md">
-                <p className="text-sm text-muted-foreground">
-                  Welcome! Start training your pet to earn experience points.
-                </p>
-              </div>
+        <Separator className="my-4" />
 
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => refetch()}>
-                  Refresh
-                </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => refetch()}>
+            Refresh
+          </Button>
 
-                <TrainButton />
+          <TrainButton />
 
-                <ButtonGroup>
-                  <PlayerSelection
-                    selectedPlayer={selectedRaidPlayer}
-                    onPlayerSelect={setSelectedRaidPlayer}
-                  />
-                  <Button
-                    disabled={!selectedRaidPlayer}
-                    onClick={() => raid({ defenderPetId: selectedRaidPlayer! })}
-                  >
-                    Raid
-                  </Button>
-                </ButtonGroup>
+          <ButtonGroup>
+            <PlayerSelection
+              selectedPlayer={selectedRaidPlayer}
+              onPlayerSelect={setSelectedRaidPlayer}
+            />
+            <Button
+              disabled={!selectedRaidPlayer}
+              onClick={() => raid({ defenderPetId: selectedRaidPlayer! })}
+            >
+              Raid
+            </Button>
+          </ButtonGroup>
 
-                <ButtonGroup>
-                  <Input type="text" placeholder="Letter ..." ref={letterRef} />
-                  <PlayerSelection
-                    selectedPlayer={selectedPetSittingPlayer}
-                    onPlayerSelect={setSelectedPetSittingPlayer}
-                  />
-                  <Button
-                    disabled={!selectedPetSittingPlayer}
-                    onClick={() => {
-                      sendPet({
-                        hostPetId: selectedPetSittingPlayer!,
-                        letter:
-                          letterRef.current?.value ||
-                          "Please take care of my pet!",
-                      });
+          <ButtonGroup>
+            <Input type="text" placeholder="Letter ..." ref={letterRef} />
+            <PlayerSelection
+              selectedPlayer={selectedPetSittingPlayer}
+              onPlayerSelect={setSelectedPetSittingPlayer}
+            />
+            <Button
+              disabled={!selectedPetSittingPlayer}
+              onClick={() => {
+                sendPet({
+                  hostPetId: selectedPetSittingPlayer!,
+                  letter:
+                    letterRef.current?.value || "Please take care of my pet!",
+                });
 
-                      if (letterRef.current) {
-                        letterRef.current.value = "";
-                      }
-                    }}
-                  >
-                    Send Pet
-                  </Button>
-                </ButtonGroup>
-              </div>
-            </>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                if (letterRef.current) {
+                  letterRef.current.value = "";
+                }
+              }}
+            >
+              Send Pet
+            </Button>
+          </ButtonGroup>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
-
-const StatCard = ({ label, value }: { label: string; value: number }) => (
-  <Card className="bg-card/50">
-    <CardHeader className="pb-2">
-      <CardTitle className="text-sm text-muted-foreground text-center">
-        {label}
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-2xl font-bold text-center">{value}</p>
-    </CardContent>
-  </Card>
-);
 
 export default Pet;

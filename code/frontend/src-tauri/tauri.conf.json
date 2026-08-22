@@ -13,8 +13,14 @@
     "windows": [
       {
         "title": "frontend",
-        "width": 800,
-        "height": 600
+        "width": 400,
+        "height": 400,
+        "decorations": true,
+        "transparent": true,
+        "resizable": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": false,
+        "visible": true
       }
     ],
     "security": {
