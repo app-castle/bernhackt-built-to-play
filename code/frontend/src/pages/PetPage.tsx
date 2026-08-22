@@ -23,7 +23,7 @@ function PetPage() {
 
     // Set new timer to clear after 2 seconds
     timer.current = setTimeout(() => {
-      train(clickCount);
+      train(clickCount + 1);
       setClickCount(0);
     }, 1000);
   };
