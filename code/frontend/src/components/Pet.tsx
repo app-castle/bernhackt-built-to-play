@@ -1,5 +1,5 @@
+import { PetAvatar } from "@/components/PetAvatar";
 import { PlayerSelection } from "@/components/PlayerSelection";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -93,11 +93,12 @@ function Pet() {
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20" onPointerDown={handlePointerDown}>
-            <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-              {pet.name[0].toUpperCase() || "?"}
-            </AvatarFallback>
-          </Avatar>
+          <PetAvatar
+            name={pet.name}
+            state={pet.status.state}
+            className="h-20 w-20"
+            onPointerDown={handlePointerDown}
+          />
           <div className="space-y-1">
             <CardTitle className="text-xl">{pet.name}</CardTitle>
             <p className="text-sm text-muted-foreground">Level {pet.level}</p>
@@ -107,20 +108,20 @@ function Pet() {
       </CardHeader>
       <CardContent>
         <Separator className="my-4" />
-        <div className="flex flex-wrap gap-2 justify-center">
-          <Badge className="flex gap-1 justify-between min-w-15">
+        <div className="flex flex-wrap gap-3 justify-center">
+          <Badge className="flex gap-1.5 justify-between min-w-20 h-8 px-3 text-sm [&>svg]:size-4! bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">
             <span>XP</span>
             {pet.xp}
           </Badge>
-          <Badge className="flex gap-1 justify-between min-w-15">
+          <Badge className="flex gap-1.5 justify-between min-w-20 h-8 px-3 text-sm [&>svg]:size-4! bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300">
             <SwordIcon />
             {pet.attack}
           </Badge>
-          <Badge className="flex gap-1 justify-between min-w-15">
+          <Badge className="flex gap-1.5 justify-between min-w-20 h-8 px-3 text-sm [&>svg]:size-4! bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
             <ShieldIcon />
             {pet.defense}
           </Badge>
-          <Badge className="flex gap-1 justify-between min-w-15">
+          <Badge className="flex gap-1.5 justify-between min-w-20 h-8 px-3 text-sm [&>svg]:size-4! bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300">
             <HeartIcon />
             {pet.health}
           </Badge>
