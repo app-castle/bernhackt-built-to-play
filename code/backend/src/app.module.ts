@@ -3,9 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { BattleModule } from './battle/battle.module';
 import databaseConfig from './config/database.config';
 import { validate } from './config/env.validation';
-import { BattleModule } from './battle/battle.module';
 import { PetActivityModule } from './pet-activity/pet-activity.module';
 import { PetSittingModule } from './pet-sitting/pet-sitting.module';
 import { PetModule } from './pet/pet.module';
@@ -21,11 +21,7 @@ import { PetModule } from './pet/pet.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.get('database.host'),
-        port: config.get('database.port'),
-        username: config.get('database.username'),
-        password: config.get('database.password'),
-        database: config.get('database.name'),
+        url: config.get('database.url'),
         autoLoadEntities: true,
         synchronize: config.get('database.synchronize'),
       }),

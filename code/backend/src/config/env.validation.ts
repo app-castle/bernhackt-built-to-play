@@ -1,27 +1,12 @@
 import { plainToInstance } from 'class-transformer';
-import { IsIn, IsNumber, IsString, validateSync } from 'class-validator';
+import { IsIn, IsString, validateSync } from 'class-validator';
 
 class EnvironmentVariables {
   @IsIn(['development', 'production', 'test'])
   NODE_ENV: string;
 
-  @IsNumber()
-  PORT: number;
-
   @IsString()
-  DB_HOST: string;
-
-  @IsNumber()
-  POSTGRES_PORT: number;
-
-  @IsString()
-  POSTGRES_USER: string;
-
-  @IsString()
-  POSTGRES_PASSWORD: string;
-
-  @IsString()
-  POSTGRES_DB: string;
+  DATABASE_URL: string;
 }
 
 export function validate(config: Record<string, unknown>) {
