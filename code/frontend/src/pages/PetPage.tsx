@@ -4,10 +4,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { usePet } from "@/hooks/pet";
 import { cn } from "@/lib/utils";
+import { useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 function PetPage() {
-  const { pet, isLoading, error, refetch } = usePet();
+  const { pet, isLoading, error, refetch, train } = usePet();
+  const [clickCount, setClickCount] = useState(0);
+  const timer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTrainClick = () => {
+    // Increment click counter
+    setClickCount((prev) => prev + 1);
+
+    // Clear previous timer if exists
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
+
+    // Set new timer to clear after 2 seconds
+    timer.current = setTimeout(() => {
+      train(clickCount);
+      setClickCount(0);
+    }, 1000);
+  };
 
   if (isLoading) {
     return (
@@ -72,7 +91,7 @@ function PetPage() {
             </Avatar>
             <div className="space-y-1">
               <CardTitle className="text-3xl">{pet.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">Level 1</p>
+              <p className="text-sm text-muted-foreground">Level {pet.level}</p>
             </div>
           </div>
           <Separator className="my-4" />
@@ -96,6 +115,9 @@ function PetPage() {
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => refetch()}>
                   Refresh
+                </Button>
+                <Button variant="outline" onClick={handleTrainClick}>
+                  Train {clickCount > 0 ? `(+${clickCount} EXP)` : ""}
                 </Button>
               </div>
             </>

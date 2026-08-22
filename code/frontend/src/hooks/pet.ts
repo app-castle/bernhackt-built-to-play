@@ -4,13 +4,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 interface Pet {
   name: string;
   xp: number;
+  level: number;
   defense: number;
   attack: number;
   health: number;
-  accessToken: string;
 }
 
 export function usePet() {
+  const queryClient = useQueryClient();
+
   const petQuery = useQuery<Pet>({
     queryKey: ["pet"],
     queryFn: async () => {
@@ -30,11 +32,39 @@ export function usePet() {
     },
   });
 
+  const trainMutation = useMutation({
+    mutationFn: async (intensity: number) => {
+      const accessToken = localStorage.getItem("accessToken");
+
+      const response = await fetch(`${API_URL}/pets/training`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ intensity }),
+      });
+
+      if (response.status !== 201) {
+        throw new Error("Failed to train pet");
+      }
+
+      return response.json();
+    },
+
+    onSuccess: () => {
+      // Invalidate and refetch pet
+      queryClient.invalidateQueries({ queryKey: ["pet"] });
+    },
+  });
+
   return {
     pet: petQuery.data,
     isLoading: petQuery.isLoading,
     error: petQuery.error,
     refetch: petQuery.refetch,
+    train: trainMutation.mutateAsync,
+    isTraining: trainMutation.isPending,
   };
 }
 
