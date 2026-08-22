@@ -1,3 +1,4 @@
+import { useKeystrokeTraining } from "@/hooks/keystrokes";
 import OnboardingPage from "@/pages/OnboardingPage";
 import PetPage from "@/pages/PetPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,6 +11,8 @@ import { cn } from "./lib/utils";
 const queryClient = new QueryClient();
 
 function App() {
+  useKeystrokeTraining();
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
