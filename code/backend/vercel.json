@@ -2,11 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "buildCommand": "npm run build",
-  "functions": {
-    "dist/main.js": {
-      "runtime": "nodejs24.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
