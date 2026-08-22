@@ -25,6 +25,76 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## API endpoints
+
+All pet endpoints are under `/pets`. Endpoints marked "Auth" require an `Authorization: Bearer <accessToken>` header, where `accessToken` is the token returned when the pet was created.
+
+### `POST /pets`
+
+Create a new pet.
+
+- **Input** (JSON body, [CreatePetDto](src/pet/dto/create-pet.dto.ts)):
+  ```json
+  { "name": "string" }
+  ```
+- **Output** (200, [ReturnCreatedPetDto](src/pet/dto/return-created-pet.dto.ts)):
+  ```json
+  {
+    "name": "string",
+    "accessToken": "string",
+    "xp": 0,
+    "level": 1,
+    "attack": 0,
+    "defense": 0,
+    "health": 0
+  }
+  ```
+  The `accessToken` is only ever returned here — store it, it's needed to authenticate every other endpoint below.
+
+### `POST /pets/training` — Auth
+
+Train the caller's pet, granting XP (subject to a cooldown and diminishing returns based on daily activity).
+
+- **Input** (JSON body, [TrainPetDto](src/pet/dto/train-pet.dto.ts)):
+  ```json
+  { "intensity": 1 }
+  ```
+  `intensity` must be a positive number, max 500.
+- **Output** (200, [ReturnPetTrainingDto](src/pet/dto/return-pet-training.dto.ts)):
+  ```json
+  {
+    "xp": 0,
+    "level": 1,
+    "attack": 0,
+    "defense": 0,
+    "health": 0
+  }
+  ```
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `404 Not Found` — no pet exists for the given access token
+  - `429 Too Many Requests` — training is still on cooldown
+
+### `GET /pets/me` — Auth
+
+Get the current state of the caller's pet.
+
+- **Input**: none (access token only)
+- **Output** (200, [ReturnPetDto](src/pet/dto/return-pet.dto.ts)):
+  ```json
+  {
+    "name": "string",
+    "xp": 0,
+    "level": 1,
+    "attack": 0,
+    "defense": 0,
+    "health": 0
+  }
+  ```
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `404 Not Found` — no pet exists for the given access token
+
 ## Project setup
 
 ```bash

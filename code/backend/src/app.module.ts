@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
 import { validate } from './config/env.validation';
+import { PetModule } from './pet/pet.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { validate } from './config/env.validation';
         synchronize: config.get('database.synchronize'),
       }),
     }),
+    PetModule,
   ],
   controllers: [AppController],
   providers: [AppService],
