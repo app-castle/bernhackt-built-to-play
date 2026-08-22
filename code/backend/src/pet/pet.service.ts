@@ -54,6 +54,20 @@ export class PetService {
     return pet;
   }
 
+  async findAll(): Promise<Pet[]> {
+    return this.petRepository.find();
+  }
+
+  async findById(id: string): Promise<Pet> {
+    const pet = await this.petRepository.findOneBy({ id });
+
+    if (!pet) {
+      throw new NotFoundException('No pet found for this id');
+    }
+
+    return pet;
+  }
+
   async getCurrent(accessToken: string): Promise<ReturnPetDto> {
     const pet = await this.load(accessToken);
     return this.toReturnPetDto(pet);
@@ -86,16 +100,41 @@ export class PetService {
 
     const factor = this.getXpFactor(pet.dailyKeystrokes);
     pet.xp += dto.intensity * factor;
-
-    while (pet.xp >= this.getXpThreshold(pet.level)) {
-      pet.xp -= this.getXpThreshold(pet.level);
-      pet.level += 1;
-    }
+    this.applyLevelUps(pet);
 
     pet.lastTrainedAt = now;
 
     const savedPet = await this.petRepository.save(pet);
     return this.toReturnPetTrainingDto(savedPet);
+  }
+
+  getEffectiveStats(pet: Pet): {
+    attack: number;
+    defense: number;
+    health: number;
+  } {
+    const growthLevels = pet.level - 1;
+    return {
+      attack: pet.attack + this.petTemplate.attackGrowth * growthLevels,
+      defense: pet.defense + this.petTemplate.defenseGrowth * growthLevels,
+      health: pet.health + this.petTemplate.healthGrowth * growthLevels,
+    };
+  }
+
+  awardXp(pet: Pet, amount: number): void {
+    pet.xp += amount;
+    this.applyLevelUps(pet);
+  }
+
+  deductXp(pet: Pet, amount: number): void {
+    pet.xp = Math.max(0, pet.xp - amount);
+  }
+
+  private applyLevelUps(pet: Pet): void {
+    while (pet.xp >= this.getXpThreshold(pet.level)) {
+      pet.xp -= this.getXpThreshold(pet.level);
+      pet.level += 1;
+    }
   }
 
   private getServerDateKey(date: Date): string {
@@ -118,13 +157,10 @@ export class PetService {
   }
 
   private toReturnPetTrainingDto(pet: Pet): ReturnPetTrainingDto {
-    const growthLevels = pet.level - 1;
     return {
       xp: pet.xp,
       level: pet.level,
-      attack: pet.attack + this.petTemplate.attackGrowth * growthLevels,
-      defense: pet.defense + this.petTemplate.defenseGrowth * growthLevels,
-      health: pet.health + this.petTemplate.healthGrowth * growthLevels,
+      ...this.getEffectiveStats(pet),
     };
   }
 

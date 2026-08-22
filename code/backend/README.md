@@ -95,6 +95,115 @@ Get the current state of the caller's pet.
   - `401 Unauthorized` — missing or malformed access token
   - `404 Not Found` — no pet exists for the given access token
 
+All battle endpoints are under `/battles`. Endpoints marked "Auth" require an `Authorization: Bearer <accessToken>` header, same as above, except the SSE stream, which takes the token as a `?token=` query parameter instead (the browser `EventSource` API can't set custom headers).
+
+A challenge stays `pending` for 15 seconds (`reactionWindowMs`, [base-battle.template.ts](src/battle/config/base-battle.template.ts)). If the defender accepts in time via `POST /battles/:id/accept`, their defense gets a +20% boost for the fight; if the window elapses unanswered, it's auto-resolved instead with a -20% defense malus. Either way the winner gains XP and the loser loses XP (floored at 0), scaled by the level gap between them — see `computeBattleOutcome` in [battle-combat.ts](src/battle/battle-combat.ts) for the exact formula.
+
+### `GET /battles/players` — Auth
+
+List other pets that can be challenged (the caller is excluded).
+
+- **Input**: none (access token only)
+- **Output** (200, array of [ReturnPlayerDto](src/battle/dto/return-player.dto.ts)):
+  ```json
+  [{ "id": "uuid", "name": "string", "level": 1, "inBattle": false }]
+  ```
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+
+### `POST /battles` — Auth
+
+Challenge another pet to a battle. Fails if either pet is already in a pending battle.
+
+- **Input** (JSON body, [ChallengeBattleDto](src/battle/dto/challenge-battle.dto.ts)):
+  ```json
+  { "defenderPetId": "uuid" }
+  ```
+- **Output** (201, [ReturnBattleDto](src/battle/dto/return-battle.dto.ts)):
+  ```json
+  {
+    "id": "uuid",
+    "challengerPetId": "uuid",
+    "defenderPetId": "uuid",
+    "status": "pending",
+    "defended": false,
+    "winnerPetId": null,
+    "levelDifference": 0,
+    "challengerXpChange": null,
+    "defenderXpChange": null,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "resolvedAt": null
+  }
+  ```
+  Also pushes a `battle.challenged` event to the defender's SSE stream (see below).
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `400 Bad Request` — challenging your own pet
+  - `404 Not Found` — no pet exists for `defenderPetId`
+  - `409 Conflict` — the caller or the defender is already in a pending battle
+
+### `POST /battles/:id/accept` — Auth
+
+React to an incoming challenge before the 15-second window closes, applying the defense boost and resolving the battle immediately.
+
+- **Input**: none (access token only, must belong to the battle's defender)
+- **Output** (201, [ReturnBattleDto](src/battle/dto/return-battle.dto.ts)) — same shape as above, now `status: "resolved"` with `defended: true`.
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `403 Forbidden` — caller is not the defender of this battle
+  - `404 Not Found` — no battle exists for the given id
+  - `409 Conflict` — the battle is no longer pending (already resolved, or the window already elapsed)
+
+### `GET /battles/:id` — Auth
+
+Fetch a battle's current state (auto-resolves it first if the reaction window has since elapsed).
+
+- **Input**: none (access token only)
+- **Output** (200, [ReturnBattleDto](src/battle/dto/return-battle.dto.ts))
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+  - `404 Not Found` — no battle exists for the given id
+
+### `GET /battles/me` — Auth
+
+List the caller's battles (as challenger or defender), newest first.
+
+- **Input**: none (access token only)
+- **Output** (200, array of [ReturnBattleDto](src/battle/dto/return-battle.dto.ts))
+- **Errors**:
+  - `401 Unauthorized` — missing or malformed access token
+
+### `GET /battles/events?token=<accessToken>`
+
+Server-Sent Events stream of battle notifications for the caller's pet. Keep the connection open to receive:
+
+- `battle.challenged` — sent only to the defender when someone challenges them:
+  ```json
+  {
+    "battleId": "uuid",
+    "defenderPetId": "uuid",
+    "challengerPetId": "uuid",
+    "challengerName": "string",
+    "challengerLevel": 1,
+    "expiresAt": "2024-01-01T00:00:15.000Z"
+  }
+  ```
+- `battle.resolved` — sent to both the challenger and the defender once the battle is decided, whether by accepting or by the window timing out:
+  ```json
+  {
+    "battleId": "uuid",
+    "challengerPetId": "uuid",
+    "defenderPetId": "uuid",
+    "winnerPetId": "uuid",
+    "defended": false,
+    "challengerXpChange": 40,
+    "defenderXpChange": -40,
+    "resolvedAt": "2024-01-01T00:00:15.000Z"
+  }
+  ```
+- **Errors**:
+  - `401 Unauthorized` — missing or invalid token query param
+
 ## Project setup
 
 ```bash

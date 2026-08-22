@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
 import { validate } from './config/env.validation';
+import { BattleModule } from './battle/battle.module';
 import { PetModule } from './pet/pet.module';
 
 @Module({
@@ -28,6 +29,7 @@ import { PetModule } from './pet/pet.module';
       }),
     }),
     PetModule,
+    BattleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

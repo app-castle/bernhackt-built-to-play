@@ -10,5 +10,6 @@ import { PET_TEMPLATE } from './templates/pet-template.token';
   imports: [TypeOrmModule.forFeature([Pet])],
   controllers: [PetController],
   providers: [PetService, { provide: PET_TEMPLATE, useValue: basePetTemplate }],
+  exports: [PetService],
 })
 export class PetModule {}
