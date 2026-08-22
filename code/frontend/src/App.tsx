@@ -1,50 +1,43 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import OnboardingPage from "@/pages/OnboardingPage";
+import PetPage from "@/pages/PetPage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
 import "./App.css";
+import { buttonVariants } from "./components/ui/button";
+import { cn } from "./lib/utils";
+
+const queryClient = new QueryClient();
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <nav>
+          <ul className="flex gap-4 p-4 bg-gray-100">
+            <li>
+              <NavLink
+                to="/"
+                className={cn(buttonVariants({ variant: "outline" }))}
+              >
+                Onboarding
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/pet"
+                className={cn(buttonVariants({ variant: "outline" }))}
+              >
+                Pet
+              </NavLink>
+            </li>
+          </ul>
+        </nav>
+        <Routes>
+          <Route path="/" element={<OnboardingPage />} />
+          <Route path="/pet" element={<PetPage />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
