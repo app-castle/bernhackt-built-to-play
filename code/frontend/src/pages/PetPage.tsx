@@ -1,29 +1,19 @@
+import { PlayerSelection } from "@/components/PlayerSelection";
+import { TrainButton } from "@/components/TrainButton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/toast";
-import { usePlayers, useRaid } from "@/hooks/battle";
+import { useRaid } from "@/hooks/battle";
 import { usePet } from "@/hooks/pet";
 import { useBattleEvents } from "@/hooks/useBattleEvents";
-import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
 
 function PetPage() {
-  const { pet, isLoading, error, refetch, train } = usePet();
-  const [clickCount, setClickCount] = useState(0);
-  const timer = useRef<NodeJS.Timeout | null>(null);
-  const { players } = usePlayers();
+  const { pet, isLoading, error, refetch } = usePet();
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const { raid, defend } = useRaid();
 
@@ -48,26 +38,6 @@ function PetPage() {
       queryClient.invalidateQueries({ queryKey: ["pet"] });
     },
   });
-
-  const playerSelection = players?.map(
-    (p) => ({ label: p.name, value: p.id }) as const,
-  );
-
-  const handleTrainClick = () => {
-    // Increment click counter
-    setClickCount((prev) => prev + 1);
-
-    // Clear previous timer if exists
-    if (timer.current) {
-      clearTimeout(timer.current);
-    }
-
-    // Set new timer to clear after 2 seconds
-    timer.current = setTimeout(() => {
-      train(clickCount + 1);
-      setClickCount(0);
-    }, 1000);
-  };
 
   if (isLoading) {
     return (
@@ -100,24 +70,7 @@ function PetPage() {
   }
 
   if (!pet) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-lg">
-          <CardHeader>
-            <CardTitle>No Pet Found</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">You don't have a pet yet.</p>
-            <NavLink
-              to="/"
-              className={cn(buttonVariants({ variant: "outline" }), "mt-4")}
-            >
-              Create Pet
-            </NavLink>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    throw new Error("Pet data is not available");
   }
 
   return (
@@ -158,36 +111,20 @@ function PetPage() {
                   Refresh
                 </Button>
 
-                <Button variant="outline" onClick={handleTrainClick}>
-                  Train {clickCount > 0 ? `(+${clickCount} EXP)` : ""}
-                </Button>
+                <TrainButton />
 
-                {playerSelection && playerSelection.length > 0 && (
-                  <ButtonGroup>
-                    <Select
-                      items={playerSelection}
-                      onValueChange={(value) => setSelectedPlayer(value)}
-                      value={selectedPlayer || null}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Player" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {playerSelection.map((p) => (
-                          <SelectItem key={p.value} value={p.value}>
-                            {p.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      disabled={!selectedPlayer}
-                      onClick={() => raid({ defenderPetId: selectedPlayer! })}
-                    >
-                      Raid
-                    </Button>
-                  </ButtonGroup>
-                )}
+                <ButtonGroup>
+                  <PlayerSelection
+                    selectedPlayer={selectedPlayer}
+                    onPlayerSelect={setSelectedPlayer}
+                  />
+                  <Button
+                    disabled={!selectedPlayer}
+                    onClick={() => raid({ defenderPetId: selectedPlayer! })}
+                  >
+                    Raid
+                  </Button>
+                </ButtonGroup>
               </div>
             </>
           </div>
