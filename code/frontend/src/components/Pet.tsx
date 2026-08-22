@@ -8,9 +8,11 @@ import { toast } from "@/components/ui/toast";
 import { useRaid } from "@/hooks/battle";
 import { usePet } from "@/hooks/pet";
 import { useBattleEvents } from "@/hooks/useBattleEvents";
+import { useKeystrokeListener } from "@/hooks/useKeystrokeListener";
 import { usePetSitting } from "@/hooks/usePetSitting";
 import { usePetSittingEvents } from "@/hooks/usePetSittingEvents";
 import { useQueryClient } from "@tanstack/react-query";
+import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { HeartIcon, ShieldIcon, SwordIcon } from "lucide-react";
 import { useRef, useState } from "react";
@@ -18,7 +20,7 @@ import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 
 function Pet() {
-  const { pet, refetch } = usePet();
+  const { pet, refetch, trainPet } = usePet();
   const [selectedRaidPlayer, setSelectedRaidPlayer] = useState<string | null>(
     null,
   );
@@ -28,6 +30,10 @@ function Pet() {
   const letterRef = useRef<HTMLInputElement>(null);
   const { raid, defend } = useRaid();
   const { sendPet, acceptPetSitting } = usePetSitting();
+
+  useKeystrokeListener({
+    onKeystrokeBatch: trainPet,
+  });
 
   usePetSittingEvents({
     petSittingInvited: (data) => {
@@ -81,9 +87,10 @@ function Pet() {
     throw new Error("Pet data is not available");
   }
 
-  const window = getCurrentWindow();
-
   const handlePointerDown = async () => {
+    if (!isTauri()) return;
+
+    const window = getCurrentWindow();
     await window.startDragging();
   };
 
