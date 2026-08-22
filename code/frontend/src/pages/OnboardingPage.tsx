@@ -7,14 +7,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { usePet } from "@/hooks/usePet";
+import { useCreatePet } from "@/hooks/pet";
 import { SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const [petName, setPetName] = useState("");
-  const { createPet, isCreating } = usePet();
+  const { createPet, isPending } = useCreatePet();
 
   const handleSubmit: SubmitEventHandler = (e) => {
     e.preventDefault();
@@ -24,8 +24,8 @@ export default function OnboardingPage() {
     if (!trimmedName) return;
 
     createPet({ name: trimmedName })
-      .then((pet) => {
-        navigate(`/pet/${pet.name}`);
+      .then(() => {
+        navigate(`/pet`);
       })
       .catch((error) => {
         console.error("Failed to create pet:", error);
@@ -58,9 +58,9 @@ export default function OnboardingPage() {
             <Button
               type="submit"
               className="w-full"
-              disabled={!petName.trim() || isCreating}
+              disabled={!petName.trim() || isPending}
             >
-              {isCreating ? "Creating..." : "Continue"}
+              {isPending ? "Creating..." : "Continue"}
             </Button>
           </form>
         </CardContent>

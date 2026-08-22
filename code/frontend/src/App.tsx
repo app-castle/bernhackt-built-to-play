@@ -3,6 +3,8 @@ import PetPage from "@/pages/PetPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
 import "./App.css";
+import { buttonVariants } from "./components/ui/button";
+import { cn } from "./lib/utils";
 
 const queryClient = new QueryClient();
 
@@ -10,11 +12,29 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <NavLink to="/">Onboarding</NavLink>
-        <NavLink to="/pet/1">Pet</NavLink>
+        <nav>
+          <ul className="flex gap-4 p-4 bg-gray-100">
+            <li>
+              <NavLink
+                to="/"
+                className={cn(buttonVariants({ variant: "outline" }))}
+              >
+                Onboarding
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/pet"
+                className={cn(buttonVariants({ variant: "outline" }))}
+              >
+                Pet
+              </NavLink>
+            </li>
+          </ul>
+        </nav>
         <Routes>
           <Route path="/" element={<OnboardingPage />} />
-          <Route path="/pet/:petId" element={<PetPage />} />
+          <Route path="/pet" element={<PetPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
