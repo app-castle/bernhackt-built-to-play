@@ -15,8 +15,6 @@ interface Pet {
 }
 
 export function usePet() {
-  const queryClient = useQueryClient();
-
   const petQuery = useSuspenseQuery<Pet>({
     queryKey: ["pet"],
     queryFn: async () => {
@@ -36,7 +34,16 @@ export function usePet() {
     },
   });
 
-  const trainMutation = useMutation({
+  return {
+    pet: petQuery.data,
+    refetch: petQuery.refetch,
+  };
+}
+
+export function useTrainPet() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationFn: async (intensity: number) => {
       const accessToken = localStorage.getItem("accessToken");
 
@@ -55,19 +62,11 @@ export function usePet() {
 
       return response.json();
     },
-
     onSuccess: () => {
       // Invalidate and refetch pet
       queryClient.invalidateQueries({ queryKey: ["pet"] });
     },
   });
-
-  return {
-    pet: petQuery.data,
-    refetch: petQuery.refetch,
-    train: trainMutation.mutateAsync,
-    isTraining: trainMutation.isPending,
-  };
 }
 
 interface CreatePetDto {

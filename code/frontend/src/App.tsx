@@ -11,10 +11,9 @@ import { cn } from "./lib/utils";
 const queryClient = new QueryClient();
 
 function App() {
-  useKeystrokeTraining();
-
   return (
     <QueryClientProvider client={queryClient}>
+      <KeystrokeTrainingListener />
       <BrowserRouter>
         <nav>
           <ul className="flex gap-4 p-4 bg-gray-100">
@@ -44,6 +43,11 @@ function App() {
       </BrowserRouter>
     </QueryClientProvider>
   );
+}
+
+function KeystrokeTrainingListener() {
+  useKeystrokeTraining();
+  return null;
 }
 
 export default App;

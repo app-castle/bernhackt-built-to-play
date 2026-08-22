@@ -1,4 +1,4 @@
-import { API_URL } from "@/lib/api";
+import { useTrainPet } from "@/hooks/pet";
 import { isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -11,31 +11,12 @@ interface KeystrokeBatch {
   count: number;
 }
 
-async function submitTrainingIntensity(intensity: number) {
-  const accessToken = localStorage.getItem("accessToken");
-  if (!accessToken) {
-    console.log("[keystrokes] skipping flush: no accessToken yet");
-    return false;
-  }
-
-  const response = await fetch(`${API_URL}/pets/training`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ intensity }),
-  });
-
-  console.log(
-    `[keystrokes] POST /pets/training intensity=${intensity} -> status ${response.status}`,
-  );
-
-  return response.status === 201;
-}
-
 export function useKeystrokeTraining() {
   const pendingRef = useRef(0);
+  const trainMutation = useTrainPet();
+
+  const trainRef = useRef(trainMutation.mutateAsync);
+  trainRef.current = trainMutation.mutateAsync;
 
   useEffect(() => {
     console.log(
@@ -58,12 +39,10 @@ export function useKeystrokeTraining() {
 
       const intensity = Math.min(count, MAX_INTENSITY);
       try {
-        const ok = await submitTrainingIntensity(intensity);
-        if (ok) {
-          pendingRef.current = 0;
-        }
-        // on failure (incl. no accessToken yet), leave pendingRef as-is so
-        // the count is retried on the next flush instead of being lost
+        await trainRef.current(intensity);
+        pendingRef.current = 0;
+        // on failure, leave pendingRef as-is so the count is retried on the
+        // next flush instead of being lost
       } catch (error) {
         console.log("[keystrokes] flush failed, will retry next interval", error);
       }

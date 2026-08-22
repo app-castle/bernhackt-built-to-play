@@ -1,5 +1,4 @@
 import { PlayerSelection } from "@/components/PlayerSelection";
-import { TrainButton } from "@/components/TrainButton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -80,8 +79,6 @@ function Pet() {
                 <Button variant="outline" onClick={() => refetch()}>
                   Refresh
                 </Button>
-
-                <TrainButton />
 
                 <ButtonGroup>
                   <PlayerSelection
