@@ -10,6 +10,7 @@ import { useBattleEvents } from "@/hooks/useBattleEvents";
 import { useKeystrokeListener } from "@/hooks/useKeystrokeListener";
 import { usePetSitting } from "@/hooks/usePetSitting";
 import { usePetSittingEvents } from "@/hooks/usePetSittingEvents";
+import { PetSittingStatus } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -109,6 +110,31 @@ function Pet() {
     await window.startDragging();
   };
 
+  const statusType: Record<
+    PetSittingStatus["state"],
+    { label: string; className: string }
+  > = {
+    available: {
+      label: "Available",
+      className:
+        "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300",
+    },
+    tired: {
+      label: "Tired",
+      className:
+        "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-300",
+    },
+    raiding: {
+      label: "Raiding",
+      className: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
+    },
+    pet_sitting: {
+      label: "Pet Sitting",
+      className:
+        "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
+    },
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -122,7 +148,9 @@ function Pet() {
           <div className="space-y-1">
             <CardTitle className="text-xl">{pet.name}</CardTitle>
             <p className="text-sm text-muted-foreground">Level {pet.level}</p>
-            <Badge>{pet.status.state}</Badge>
+            <Badge className={statusType[pet.status.state].className}>
+              {statusType[pet.status.state].label}
+            </Badge>
           </div>
         </div>
       </CardHeader>
