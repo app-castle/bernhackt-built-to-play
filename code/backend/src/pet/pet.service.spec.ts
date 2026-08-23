@@ -68,8 +68,8 @@ describe('PetService', () => {
       const stats = service.getEffectiveStats(pet);
 
       // level 3 => 2 growth levels: attack 10+2*2=14, defense 5+1*2=7, health 100+5*2=110
-      expect(stats.attack).toBeCloseTo(14 * 0.7);
-      expect(stats.defense).toBeCloseTo(7 * 0.7);
+      expect(stats.attack).toBe(Math.round(14 * 0.7));
+      expect(stats.defense).toBe(Math.round(7 * 0.7));
       expect(stats.health).toBe(110);
     });
 

@@ -44,7 +44,7 @@ export function computeBattleOutcome(
     template.minXpMultiplier,
     template.maxXpMultiplier,
   );
-  const xpAmount = template.baseBattleXp * multiplier;
+  const xpAmount = Math.round(template.baseBattleXp * multiplier);
 
   return { challengerWins, xpAmount };
 }

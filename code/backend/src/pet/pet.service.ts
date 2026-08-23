@@ -111,7 +111,7 @@ export class PetService {
     pet.dailyKeystrokes += dto.intensity;
 
     const factor = this.getXpFactor(pet.dailyKeystrokes);
-    const xpAwarded = dto.intensity * factor;
+    const xpAwarded = Math.round(dto.intensity * factor);
     this.awardXp(pet, xpAwarded);
 
     pet.lastTrainedAt = now;
@@ -131,11 +131,15 @@ export class PetService {
       ? 1 - this.petTemplate.tiredDebuff
       : 1;
     return {
-      attack:
+      attack: Math.round(
         (pet.attack + this.petTemplate.attackGrowth * growthLevels) * debuff,
-      defense:
+      ),
+      defense: Math.round(
         (pet.defense + this.petTemplate.defenseGrowth * growthLevels) * debuff,
-      health: pet.health + this.petTemplate.healthGrowth * growthLevels,
+      ),
+      health: Math.round(
+        pet.health + this.petTemplate.healthGrowth * growthLevels,
+      ),
     };
   }
 
@@ -153,7 +157,7 @@ export class PetService {
   }
 
   deductXp(pet: Pet, amount: number): void {
-    pet.xp = Math.max(0, pet.xp - amount);
+    pet.xp = Math.round(Math.max(0, pet.xp - amount));
   }
 
   private applyLevelUps(pet: Pet): void {
@@ -179,7 +183,9 @@ export class PetService {
   }
 
   private getXpThreshold(level: number): number {
-    return LEVEL_UP_BASE_XP * Math.pow(LEVEL_UP_GROWTH_RATE, level - 1);
+    return Math.round(
+      LEVEL_UP_BASE_XP * Math.pow(LEVEL_UP_GROWTH_RATE, level - 1),
+    );
   }
 
   private toReturnPetTrainingDto(pet: Pet): ReturnPetTrainingDto {
