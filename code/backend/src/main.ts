@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express, { Request, Response } from 'express';
+import 'pg';
 import { AppModule } from './app.module';
 
 const server = express();
@@ -23,7 +24,7 @@ async function bootstrap() {
 const ready = bootstrap();
 
 if (require.main === module) {
-  ready.then((app) => app.listen(process.env.PORT ?? 3000));
+  void ready.then((app) => app.listen(process.env.PORT ?? 3000));
 }
 
 export default async function handler(req: Request, res: Response) {
