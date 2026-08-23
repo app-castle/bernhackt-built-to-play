@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { AppModule } from './app.module';
 
 const server = express();
@@ -15,9 +15,18 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.init();
+
+  return app;
 }
 
-bootstrap();
+const ready = bootstrap();
 
-export default server;
+if (require.main === module) {
+  ready.then((app) => app.listen(process.env.PORT ?? 3000));
+}
+
+export default async function handler(req: Request, res: Response) {
+  await ready;
+  server(req, res);
+}
