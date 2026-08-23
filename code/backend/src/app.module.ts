@@ -4,18 +4,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BattleModule } from './battle/battle.module';
+import anthropicConfig from './config/anthropic.config';
 import databaseConfig from './config/database.config';
 import { validate } from './config/env.validation';
 import { PetActivityModule } from './pet-activity/pet-activity.module';
 import { PetSittingModule } from './pet-sitting/pet-sitting.module';
 import { PetModule } from './pet/pet.module';
+import { QuestModule } from './quest/quest.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       validate,
-      load: [databaseConfig],
+      load: [databaseConfig, anthropicConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -30,6 +32,7 @@ import { PetModule } from './pet/pet.module';
     PetActivityModule,
     BattleModule,
     PetSittingModule,
+    QuestModule,
   ],
   controllers: [AppController],
   providers: [AppService],

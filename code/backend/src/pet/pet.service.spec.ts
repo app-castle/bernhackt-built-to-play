@@ -28,6 +28,7 @@ function makePet(overrides: Partial<Pet>): Pet {
     dailyKeystrokes: 0,
     dailyKeystrokesDate: null,
     tiredUntil: null,
+    lastQuestDate: null,
     accessToken: 'token',
     ...overrides,
   };

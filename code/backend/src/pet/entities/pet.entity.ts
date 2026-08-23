@@ -35,6 +35,9 @@ export class Pet {
   @Column({ type: 'timestamptz', nullable: true })
   tiredUntil: Date | null;
 
+  @Column({ type: 'date', nullable: true })
+  lastQuestDate: string | null;
+
   @Column({ type: 'varchar', unique: true })
   accessToken: string;
 }

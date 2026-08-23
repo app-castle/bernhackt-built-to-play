@@ -7,6 +7,9 @@ class EnvironmentVariables {
 
   @IsString()
   DATABASE_URL: string;
+
+  @IsString()
+  ANTHROPIC_API_KEY: string;
 }
 
 export function validate(config: Record<string, unknown>) {

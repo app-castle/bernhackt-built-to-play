@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'node:crypto';
 import { Repository } from 'typeorm';
+import { getServerDateKey } from '../common/server-date.util';
 import { PetActivityService } from '../pet-activity/pet-activity.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { ReturnCreatedPetDto } from './dto/return-created-pet.dto';
@@ -97,7 +98,7 @@ export class PetService {
       );
     }
 
-    const todayKey = this.getServerDateKey(now);
+    const todayKey = getServerDateKey(now);
     if (pet.dailyKeystrokesDate !== todayKey) {
       pet.dailyKeystrokes = 0;
       pet.dailyKeystrokesDate = todayKey;
@@ -155,13 +156,6 @@ export class PetService {
       pet.xp -= this.getXpThreshold(pet.level);
       pet.level += 1;
     }
-  }
-
-  private getServerDateKey(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
   private getXpFactor(dailyKeystrokes: number): number {

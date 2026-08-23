@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
@@ -31,7 +32,8 @@
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "typeorm": "^1.1.0"
+    "typeorm": "^1.1.0",
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
