@@ -1,14 +1,10 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express, { Request, Response } from 'express';
 import 'pg';
 import { AppModule } from './app.module';
 
-const server = express();
-
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+  const app = await NestFactory.create(AppModule);
 
   app.enableCors({
     origin: '*',
@@ -16,18 +12,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  await app.init();
-
-  return app;
+  await app.listen(process.env.PORT ?? 3000);
 }
 
-const ready = bootstrap();
-
-if (require.main === module) {
-  void ready.then((app) => app.listen(process.env.PORT ?? 3000));
-}
-
-export default async function handler(req: Request, res: Response) {
-  await ready;
-  server(req, res);
-}
+bootstrap();
