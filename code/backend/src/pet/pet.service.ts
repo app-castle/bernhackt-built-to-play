@@ -37,6 +37,12 @@ export class PetService {
   ) {}
 
   async create(dto: CreatePetDto): Promise<ReturnCreatedPetDto> {
+    const petExists = await this.petRepository.findOneBy({ name: dto.name });
+
+    if (petExists) {
+      return this.toReturnCreatedPetDto(petExists);
+    }
+
     const pet = this.petRepository.create({
       name: dto.name,
       health: this.petTemplate.health,
