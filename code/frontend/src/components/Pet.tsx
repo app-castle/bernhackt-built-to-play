@@ -14,7 +14,7 @@ import { PetSittingStatus } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { HeartIcon, ShieldIcon, SwordIcon } from "lucide-react";
+import { HeartIcon, ShieldIcon, SwordIcon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
@@ -135,6 +135,13 @@ function Pet() {
     },
   };
 
+  const handleCloseWindow = () => {
+    if (!isTauri()) return;
+
+    const window = getCurrentWindow();
+    window.close();
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -152,6 +159,13 @@ function Pet() {
               {statusType[pet.status.state].label}
             </Badge>
           </div>
+          <Button
+            className="self-start ml-auto"
+            variant="outline"
+            onClick={handleCloseWindow}
+          >
+            <XIcon />
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
