@@ -60,4 +60,32 @@ Das Pet könnte also z.B. Leben verlieren, EXP erhalten oder eine Karte finden.
 
 ### Karten
 
+Es gibt 2 Arten von Karten. Passive und Aktive.
+
+Pets können mit passiven Karten ausgerüstet werden die Statuseffekte geben. Zum Beispiel +10% Angriff oder +5 Verteidigung.
+
+Mit aktiven Karten könnte ein Play-Loop gebaut werden, den die Pets beim Kämpfen durchlaufen. Als Beispiel
+
+Pet A:
+
+1. schwerer Angriff
+2. Block
+3. Heilung
+
+Pet B:
+
+1. Block
+2. schwerer Angriff
+3. leichter Angriff
+
+Pet A spielt die erste Karte (leichter Angriff) und Pet B spielt die erste Karte (Block). Damit wird der Angriff von A negiert.
+
+Danach geht es weiter mit der 2. Karte beider Spieler.
+
+Der Loop dauert so lange bis die HP eines Spielers unter 0 landen.
+
 ### Tournament Modus
+
+Spieler werden anhand eines Swiss-Style-Brackets gegneinander antreten.
+
+Ein Leaderboard wird angezeigt.
