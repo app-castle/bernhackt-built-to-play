@@ -8,6 +8,7 @@ import {
 import { useToken } from "./useToken";
 
 interface Pet {
+  id: string;
   name: string;
   xp: number;
   level: number;

@@ -76,6 +76,21 @@ function Pet() {
       console.log("Battle resolved event received:", data);
       queryClient.invalidateQueries({ queryKey: ["pet"] });
 
+      const title =
+        data.winnerPetId === pet?.id
+          ? "You won the battle!"
+          : "You lost the battle!";
+      const description =
+        data.winnerPetId === pet?.id
+          ? "Your pet is victorious!"
+          : "Better luck next time!";
+
+      toast.add({
+        title,
+        description,
+        timeout: 5000,
+      });
+
       // after baseBattleTemplate raidTiredMs status should be back to normal
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["pet"] });
