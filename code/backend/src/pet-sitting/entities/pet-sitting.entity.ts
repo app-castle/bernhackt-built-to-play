@@ -19,14 +19,14 @@ export class PetSitting {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'uuid' })
   senderPetId: string;
 
   @ManyToOne(() => Pet)
   @JoinColumn({ name: 'senderPetId' })
   sender: Pet;
 
-  @Column()
+  @Column({ type: 'uuid' })
   hostPetId: string;
 
   @ManyToOne(() => Pet)

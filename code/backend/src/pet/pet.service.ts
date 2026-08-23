@@ -30,7 +30,9 @@ export class PetService {
     private readonly petRepository: Repository<Pet>,
     @Inject(PET_TEMPLATE)
     private readonly petTemplate: PetTemplate,
+    @Inject(PetEventsService)
     private readonly petEventsService: PetEventsService,
+    @Inject(PetActivityService)
     private readonly petActivityService: PetActivityService,
   ) {}
 

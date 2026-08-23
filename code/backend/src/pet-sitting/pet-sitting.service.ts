@@ -29,9 +29,13 @@ export class PetSittingService implements OnModuleInit {
     private readonly petSittingRepository: Repository<PetSitting>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
+    @Inject(PetService)
     private readonly petService: PetService,
+    @Inject(PetActivityService)
     private readonly petActivityService: PetActivityService,
+    @Inject(PetSittingEventsService)
     private readonly petSittingEventsService: PetSittingEventsService,
+    @Inject(PetEventsService)
     private readonly petEventsService: PetEventsService,
     @Inject(PET_SITTING_TEMPLATE)
     private readonly petSittingTemplate: PetSittingTemplate,

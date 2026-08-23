@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Headers,
+  Inject,
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -15,7 +16,10 @@ import { PetService } from './pet.service';
 
 @Controller('pets')
 export class PetController {
-  constructor(private readonly petService: PetService) {}
+  constructor(
+    @Inject(PetService)
+    private readonly petService: PetService,
+  ) {}
 
   @Post()
   create(@Body() dto: CreatePetDto): Promise<ReturnCreatedPetDto> {

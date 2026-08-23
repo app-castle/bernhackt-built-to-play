@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Headers,
+  Inject,
   MessageEvent,
   Param,
   Post,
@@ -20,8 +21,11 @@ import { ReturnBattleDto } from './dto/return-battle.dto';
 @Controller('battles')
 export class BattleController {
   constructor(
+    @Inject(BattleService)
     private readonly battleService: BattleService,
+    @Inject(PetService)
     private readonly petService: PetService,
+    @Inject(BattleEventsService)
     private readonly battleEventsService: BattleEventsService,
   ) {}
 

@@ -28,8 +28,11 @@ export class BattleService {
     private readonly battleRepository: Repository<Battle>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
+    @Inject(PetService)
     private readonly petService: PetService,
+    @Inject(PetActivityService)
     private readonly petActivityService: PetActivityService,
+    @Inject(BattleEventsService)
     private readonly battleEventsService: BattleEventsService,
     @Inject(BATTLE_TEMPLATE)
     private readonly battleTemplate: BattleTemplate,

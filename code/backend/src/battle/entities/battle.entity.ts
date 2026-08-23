@@ -17,14 +17,14 @@ export class Battle {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'uuid' })
   challengerPetId: string;
 
   @ManyToOne(() => Pet)
   @JoinColumn({ name: 'challengerPetId' })
   challenger: Pet;
 
-  @Column()
+  @Column({ type: 'uuid' })
   defenderPetId: string;
 
   @ManyToOne(() => Pet)

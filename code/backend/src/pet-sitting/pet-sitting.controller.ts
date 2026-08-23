@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Headers,
+  Inject,
   MessageEvent,
   Param,
   Post,
@@ -20,8 +21,11 @@ import { PetSittingService } from './pet-sitting.service';
 @Controller('pet-sitting')
 export class PetSittingController {
   constructor(
+    @Inject(PetSittingService)
     private readonly petSittingService: PetSittingService,
+    @Inject(PetService)
     private readonly petService: PetService,
+    @Inject(PetSittingEventsService)
     private readonly petSittingEventsService: PetSittingEventsService,
   ) {}
 
