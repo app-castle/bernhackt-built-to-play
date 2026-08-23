@@ -6,6 +6,8 @@ https://github.com/app-castle/bernhackt-built-to-play/
 
 ## Ausgangslage
 
+Challenge war Built to Play von Natron. Die Formulierung war relativ frei, Wunsch war jedoch, ein Game für die nächste LAN Party zu bauen. Inspiration waren Spiele wiwe OpenFront.io, Factorio, o.ä. also Multiplayer mit strategischen Zügen.
+
 ## Technischer Aufbau
 
 ### Frontend
@@ -20,7 +22,11 @@ https://github.com/app-castle/bernhackt-built-to-play/
 
 ### Server Sent Events (SSE)
 
-### Full TypeScript Stack
+Bei Interaktion mit anderen Spielern müssen beide Spieler benachrichtigt werden, wenn etwas passiert, z.B. ist dies der Fall beim Pet Sitting oder bei Raids / Battles.
+
+Das Frontend hört also auf Events vom Backend, wie z.B: pet-sitting.invited, battle.started, o.ä. Das funktioniert über Server Sent Events (One-Way-Communication).
+
+Dies ist ein fester Bestandteil von NestJs und bedarf keiner zusätzlicher Implementation wie es z.b. bei WebSockets der Fall wäre. Einzig hat der Spieler die Möglichkeit bei Kämpfen, sich zu verteidigen, wenn er angegriffen wird, oder Pet-Sitting Anfragen abzulehnen oder anzunehmen. Dies wird durch Post Requests ans Backend umgesetzt, statt mit einer Two-Way-Communication wie es bei WebSockets der Fall wäre. 
 
 ## Abgrenzung / Offene Punkte
 
