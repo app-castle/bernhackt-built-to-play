@@ -8,25 +8,39 @@ https://github.com/app-castle/bernhackt-built-to-play/
 
 Challenge war Built to Play von Natron. Die Formulierung war relativ frei, Wunsch war jedoch, ein Game für die nächste LAN Party zu bauen. Inspiration waren Spiele wiwe OpenFront.io, Factorio, o.ä. also Multiplayer mit strategischen Zügen.
 
+Unsere Idee war relativ schnell ein Spiel zu erstellen, welches nebenher laufen kann, während andere Spiele gespielt werden können.
+
 ## Technischer Aufbau
 
 ### Frontend
 
-- Tauri + React Frontend
+- Tauri + React
 
 ### Backend
 
-- NestJS + Postgres Backend
+- NestJS + Postgres
 
 ## Implementation
 
+### Desktop Applikation aus Web-Technologie mit Keystroke Tracking
+
+Wir haben Tauri verwendet, um unsere Web-Applikation als Desktop-Applikation umzusetzen. 
+Für Rust gibt es rdev, welches ermöglicht, Eingaben auf der Tastatur plattform-unabhängig abzufangen. Uns war es egal, welche Eingaben gemacht werden, sondern nur, dass etwas geschieht. 
+
+Dies sollte im Hintergrund passieren können, damit das Pet wirklich passiv trainiert wird, während die Spieler an der Lan-Party irgendwelche anderen Spiele spielen, miteinander chatten, o.ä. 
+
+### REST
+
+Die meisten Interaktionen passieren mittels Request an ein REST Backend über HTTP. 
+Gerade fürs Trainieren und Erstellen des Pets muss der Spieler keine Informationen vom Backend haben, respektive kann diese direkt beziehen, wenn er ein Request ans Backend übermittelt.
+
 ### Server Sent Events (SSE)
 
-Bei Interaktion mit anderen Spielern müssen beide Spieler benachrichtigt werden, wenn etwas passiert, z.B. ist dies der Fall beim Pet Sitting oder bei Raids / Battles.
+Im Falle, dass der Spieler eine Aktion abwarten muss oder ein Zustand sich verändert, haben wir mit SSE gearbeitet. Hier mussten wir abwägen zwischen Websockets und SSE, da es im Grunde jedoch nur nötig war, den Spieler zu informieren "Hey, du wirst angegriffen" oder "Hey jemand möchte, dass du auf sein Tierchen aufpasst", war es gar nicht nötig, dass eine Verbindung über Websockets aufgebaut war.
 
-Das Frontend hört also auf Events vom Backend, wie z.B: pet-sitting.invited, battle.started, o.ä. Das funktioniert über Server Sent Events (One-Way-Communication).
+Es erfolgt zwar manchmal eine Rückmeldung an den Server, diese erfolgt aber über "normale" Requests an die REST API. 
 
-Dies ist ein fester Bestandteil von NestJs und bedarf keiner zusätzlicher Implementation wie es z.b. bei WebSockets der Fall wäre. Einzig hat der Spieler die Möglichkeit bei Kämpfen, sich zu verteidigen, wenn er angegriffen wird, oder Pet-Sitting Anfragen abzulehnen oder anzunehmen. Dies wird durch Post Requests ans Backend umgesetzt, statt mit einer Two-Way-Communication wie es bei WebSockets der Fall wäre. 
+SSE funktionieren zudem einfach out-of-the-box, während WebSockets zusätzlich implementiert werden müssen, was aber nur ein nebensätzlicher Aspekt war.
 
 ## Abgrenzung / Offene Punkte
 
