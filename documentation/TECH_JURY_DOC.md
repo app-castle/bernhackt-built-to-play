@@ -12,33 +12,34 @@ Unsere Idee war relativ schnell ein Spiel zu erstellen, welches nebenher laufen 
 
 ## Technischer Aufbau
 
-### Frontend
+Grob zusammengefasst:
 
-- Tauri + React
+- Frontend: Tauri + React
+- Backend: NestJS + Postgres
 
-### Backend
+[Planung vom Freitag zum TechStack](./other/TECH_STACK.md)
 
-- NestJS + Postgres
+[Doku Backend Endpoints](../code/backend/README.md#api-endpoints)
 
 ## Implementation
 
 ### Desktop Applikation aus Web-Technologie mit Keystroke Tracking
 
-Wir haben Tauri verwendet, um unsere Web-Applikation als Desktop-Applikation umzusetzen. 
-Für Rust gibt es rdev, welches ermöglicht, Eingaben auf der Tastatur plattform-unabhängig abzufangen. Uns war es egal, welche Eingaben gemacht werden, sondern nur, dass etwas geschieht. 
+Wir haben Tauri verwendet, um unsere Web-Applikation als Desktop-Applikation umzusetzen.
+Für Rust gibt es rdev, welches ermöglicht, Eingaben auf der Tastatur plattform-unabhängig abzufangen. Uns war es egal, welche Eingaben gemacht werden, sondern nur, dass etwas geschieht.
 
-Dies sollte im Hintergrund passieren können, damit das Pet wirklich passiv trainiert wird, während die Spieler an der Lan-Party irgendwelche anderen Spiele spielen, miteinander chatten, o.ä. 
+Dies sollte im Hintergrund passieren können, damit das Pet wirklich passiv trainiert wird, während die Spieler an der Lan-Party irgendwelche anderen Spiele spielen, miteinander chatten, o.ä.
 
 ### REST
 
-Die meisten Interaktionen passieren mittels Request an ein REST Backend über HTTP. 
+Die meisten Interaktionen passieren mittels Request an ein REST Backend über HTTP.
 Gerade fürs Trainieren und Erstellen des Pets muss der Spieler keine Informationen vom Backend haben, respektive kann diese direkt beziehen, wenn er ein Request ans Backend übermittelt.
 
 ### Server Sent Events (SSE)
 
 Im Falle, dass der Spieler eine Aktion abwarten muss oder ein Zustand sich verändert, haben wir mit SSE gearbeitet. Hier mussten wir abwägen zwischen Websockets und SSE, da es im Grunde jedoch nur nötig war, den Spieler zu informieren "Hey, du wirst angegriffen" oder "Hey jemand möchte, dass du auf sein Tierchen aufpasst", war es gar nicht nötig, dass eine Verbindung über Websockets aufgebaut war.
 
-Es erfolgt zwar manchmal eine Rückmeldung an den Server, diese erfolgt aber über "normale" Requests an die REST API. 
+Es erfolgt zwar manchmal eine Rückmeldung an den Server, diese erfolgt aber über "normale" Requests an die REST API.
 
 SSE funktionieren zudem einfach out-of-the-box, während WebSockets zusätzlich implementiert werden müssen, was aber nur ein nebensätzlicher Aspekt war.
 
