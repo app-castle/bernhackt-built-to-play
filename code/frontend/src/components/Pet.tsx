@@ -75,6 +75,11 @@ function Pet() {
     onBattleResolved: (data) => {
       console.log("Battle resolved event received:", data);
       queryClient.invalidateQueries({ queryKey: ["pet"] });
+
+      // after baseBattleTemplate raidTiredMs status should be back to normal
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["pet"] });
+      }, 10_000);
     },
   });
 
