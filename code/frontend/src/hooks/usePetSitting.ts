@@ -1,5 +1,6 @@
 import { API_URL } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
+import { useToken } from "./useToken";
 
 interface CreatePetSittingDto {
   hostPetId: string;
@@ -7,14 +8,14 @@ interface CreatePetSittingDto {
 }
 
 export const usePetSitting = () => {
+  const { token } = useToken();
+
   const sendPetMutation = useMutation({
     mutationFn: async (data: CreatePetSittingDto) => {
-      const accessToken = localStorage.getItem("accessToken");
-
       const response = await fetch(`${API_URL}/pet-sitting`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
@@ -28,14 +29,12 @@ export const usePetSitting = () => {
 
   const acceptPetSittingMutation = useMutation({
     mutationFn: async (petSittingId: string) => {
-      const accessToken = localStorage.getItem("accessToken");
-
       const response = await fetch(
         `${API_URL}/pet-sitting/${petSittingId}/accept`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         },

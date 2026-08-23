@@ -1,5 +1,6 @@
 import { API_URL } from "@/lib/api";
 import { useEffect } from "react";
+import { useToken } from "./useToken";
 
 interface PetSittingInvited {
   petSittingId: string;
@@ -34,9 +35,11 @@ export const usePetSittingEvents = ({
   petSittingStarted?: (data: PetSittingStarted) => void;
   petSittingEnded?: (data: PetSittingEnded) => void;
 } = {}) => {
+  const { token } = useToken();
+
   useEffect(() => {
     const eventSource = new EventSource(
-      `${API_URL}/pet-sitting/events?token=${localStorage.getItem("accessToken")}`,
+      `${API_URL}/pet-sitting/events?token=${token}`,
     );
 
     const abortController = new AbortController();

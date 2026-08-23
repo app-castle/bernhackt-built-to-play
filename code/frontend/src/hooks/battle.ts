@@ -1,5 +1,6 @@
 import { API_URL } from "@/lib/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useToken } from "./useToken";
 
 interface Player {
   id: string;
@@ -7,14 +8,14 @@ interface Player {
 }
 
 export const usePlayers = () => {
+  const { token } = useToken();
+
   const playersQuery = useQuery<Player[]>({
     queryKey: ["pets"],
     queryFn: async () => {
-      const accessToken = localStorage.getItem("accessToken");
-
       const response = await fetch(`${API_URL}/pets`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       if (response.status !== 200) {
@@ -36,14 +37,14 @@ interface ChallengeBattleDto {
 }
 
 export const useRaid = () => {
+  const { token } = useToken();
+
   const raidMutation = useMutation({
     mutationFn: async ({ defenderPetId }: ChallengeBattleDto) => {
-      const accessToken = localStorage.getItem("accessToken");
-
       const response = await fetch(`${API_URL}/battles`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ defenderPetId }),
@@ -59,12 +60,10 @@ export const useRaid = () => {
 
   const defendMutation = useMutation({
     mutationFn: async ({ battleId }: { battleId: string }) => {
-      const accessToken = localStorage.getItem("accessToken");
-
       const response = await fetch(`${API_URL}/battles/${battleId}/accept`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });

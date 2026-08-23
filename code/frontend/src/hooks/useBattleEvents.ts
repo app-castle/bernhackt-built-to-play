@@ -1,5 +1,6 @@
 import { API_URL } from "@/lib/api";
 import { useEffect } from "react";
+import { useToken } from "./useToken";
 
 interface BattleChallange {
   battleId: string;
@@ -28,9 +29,11 @@ export const useBattleEvents = ({
   onBattleChallenged?: (data: BattleChallange) => void;
   onBattleResolved?: (data: BattleResolved) => void;
 } = {}) => {
+  const { token } = useToken();
+
   useEffect(() => {
     const eventSource = new EventSource(
-      `${API_URL}/battles/events?token=${localStorage.getItem("accessToken")}`,
+      `${API_URL}/battles/events?token=${token}`,
     );
 
     const abortController = new AbortController();

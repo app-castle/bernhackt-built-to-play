@@ -5,6 +5,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
+import { useToken } from "./useToken";
 
 interface Pet {
   name: string;
@@ -19,14 +20,14 @@ interface Pet {
 export function usePet() {
   const queryClient = useQueryClient();
 
+  const { token } = useToken();
+
   const petQuery = useSuspenseQuery<Pet>({
     queryKey: ["pet"],
     queryFn: async () => {
-      const accessToken = localStorage.getItem("accessToken");
-
       const response = await fetch(`${API_URL}/pets/me`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -40,12 +41,10 @@ export function usePet() {
 
   const trainPetMutation = useMutation({
     mutationFn: async (intensity: number) => {
-      const accessToken = localStorage.getItem("accessToken");
-
       const response = await fetch(`${API_URL}/pets/training`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ intensity }),
@@ -80,6 +79,8 @@ interface ReturnCreatePetDto {
 export const useCreatePet = () => {
   const queryClient = useQueryClient();
 
+  const { setToken } = useToken();
+
   const createPetMutation = useMutation({
     mutationFn: async (data: CreatePetDto) => {
       const response = await fetch(`${API_URL}/pets`, {
@@ -93,7 +94,7 @@ export const useCreatePet = () => {
       }
 
       const { accessToken } = (await response.json()) as ReturnCreatePetDto;
-      localStorage.setItem("accessToken", accessToken);
+      setToken(accessToken);
     },
     onSuccess: () => {
       // Invalidate and refetch pet
