@@ -33,7 +33,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle>Name your pet</CardTitle>
         <CardDescription>Enter a name for your pet to continue</CardDescription>
